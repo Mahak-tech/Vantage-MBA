@@ -97,6 +97,23 @@ npm run dev
 
 ## ☁️ Deployment Instructions
 
+### Deploy to Vercel (1-Click Deployment)
+
+This repository includes a pre-configured `vercel.json` and serverless API entrypoint (`api/index.js`):
+
+1. Go to [vercel.com/new](https://vercel.com/new) and log in with GitHub.
+2. Select your repository: **`Mahak-tech/Vantage-MBA`**.
+3. **Framework Preset**: Select **Other** (leave as default).
+4. **Root Directory**: `./` (leave default).
+5. All build commands and rewrites are pre-configured in `vercel.json`:
+   - Build Command: `npm run vercel-build`
+   - Output Directory: `client/dist`
+   - Serverless API Function: `api/index.js`
+6. Click **Deploy**.
+   Vercel will compile the Vite client, package the Express API into serverless functions, and generate a live URL (e.g. `https://vantage-mba.vercel.app`).
+
+---
+
 ### Deploy to Render / Railway / Heroku
 
 1. **Push code to your GitHub repository**:

@@ -21,9 +21,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Setup upload directory
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const UPLOAD_DIR = isVercel ? '/tmp/uploads' : path.join(__dirname, 'uploads');
+try {
+  if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  }
+} catch (e) {
+  // Ignored in read-only environments
 }
 
 // Multer storage config
@@ -731,9 +736,13 @@ if (fs.existsSync(clientDist)) {
 }
 
 // Start Server
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🚀 Vantage MBA Backend running on http://localhost:${PORT}`);
-  console.log(`📚 AI Document Processing & RAG Engine Active`);
-  console.log(`====================================================`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`🚀 Vantage MBA Backend running on http://localhost:${PORT}`);
+    console.log(`📚 AI Document Processing & RAG Engine Active`);
+    console.log(`====================================================`);
+  });
+}
+
+module.exports = app;

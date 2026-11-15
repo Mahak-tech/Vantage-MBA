@@ -2,12 +2,17 @@ const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
-const DATA_DIR = path.join(__dirname, 'data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DATA_DIR = isVercel ? '/tmp/data' : path.join(__dirname, 'data');
+const DB_FILE = isVercel ? path.join(DATA_DIR, 'db.json') : path.join(__dirname, 'data', 'db.json');
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+// Ensure data directory exists if possible
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (e) {
+  // Ignored in read-only environments
 }
 
 // Initial Database Structure
@@ -50,6 +55,21 @@ let dbCache = null;
 
 function loadDb() {
   if (dbCache) return dbCache;
+  if (isVercel && !fs.existsSync(DB_FILE)) {
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      const initialSeedFile = path.join(__dirname, 'data', 'db.json');
+      if (fs.existsSync(initialSeedFile)) {
+        fs.copyFileSync(initialSeedFile, DB_FILE);
+      } else {
+        saveDb(initialData);
+      }
+    } catch (e) {
+      console.warn('Could not seed /tmp/data/db.json on Vercel:', e.message);
+    }
+  }
   if (!fs.existsSync(DB_FILE)) {
     saveDb(initialData);
     dbCache = JSON.parse(JSON.stringify(initialData));
@@ -75,9 +95,16 @@ function loadDb() {
 
 function saveDb(data) {
   dbCache = data;
-  const tempFile = `${DB_FILE}.tmp`;
-  fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf8');
-  fs.renameSync(tempFile, DB_FILE);
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    const tempFile = `${DB_FILE}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf8');
+    fs.renameSync(tempFile, DB_FILE);
+  } catch (err) {
+    console.warn('File write notice (using in-memory cache):', err.message);
+  }
 }
 
 // Supabase client instance (if configured)
