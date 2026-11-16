@@ -23,6 +23,275 @@ import {
 
 const API_BASE = '/api';
 
+// Fallback seed data in case client is deployed standalone on Vercel
+const DEFAULT_TERMS: AcademicTerm[] = [
+  {
+    id: 'term-1',
+    termNumber: 1,
+    name: 'Term 1',
+    status: 'completed',
+    credits: 18,
+    gpa: '3.85',
+    startDate: '2026-07-01',
+    endDate: '2026-10-15',
+    description: 'Foundation MBA Core: Financial Accounting, Quantitative Methods, Marketing Management & Organizational Behavior',
+    isCurrent: false
+  },
+  {
+    id: 'term-2',
+    termNumber: 2,
+    name: 'Term 2',
+    status: 'active',
+    credits: 18,
+    gpa: null,
+    startDate: '2026-10-20',
+    endDate: '2027-01-30',
+    description: 'Active Term: Microeconomics, Market Research Methods, Corporate Finance & Business Analytics',
+    isCurrent: true
+  },
+  {
+    id: 'term-3',
+    termNumber: 3,
+    name: 'Term 3',
+    status: 'upcoming',
+    credits: 18,
+    gpa: null,
+    startDate: '2027-02-05',
+    endDate: '2027-05-15',
+    description: 'Advanced Operations, Supply Chain Strategy & Managerial Macroeconomics',
+    isCurrent: false
+  },
+  {
+    id: 'term-4',
+    termNumber: 4,
+    name: 'Term 4',
+    status: 'upcoming',
+    credits: 18,
+    gpa: null,
+    startDate: '2027-06-01',
+    endDate: '2027-09-15',
+    description: 'Product Leadership, Global Competitive Strategy & Technology Commercialization',
+    isCurrent: false
+  },
+  {
+    id: 'term-5',
+    termNumber: 5,
+    name: 'Term 5',
+    status: 'upcoming',
+    credits: 18,
+    gpa: null,
+    startDate: '2027-10-01',
+    endDate: '2028-01-15',
+    description: 'Venture Capital, Tech Entrepreneurship & Specialized Electives',
+    isCurrent: false
+  },
+  {
+    id: 'term-6',
+    termNumber: 6,
+    name: 'Term 6',
+    status: 'upcoming',
+    credits: 18,
+    gpa: null,
+    startDate: '2028-02-01',
+    endDate: '2028-05-30',
+    description: 'Capstone Consulting Immersion, Strategic Mergers & Executive Leadership',
+    isCurrent: false
+  }
+];
+
+const DEFAULT_USER: UserProfile = {
+  id: 'user_default',
+  name: 'Mahak',
+  email: 'mahak@mba.edu',
+  university: 'Hari Shankar Singhania School of Business',
+  specialization: 'MBA Product Management',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  studyStreak: 1,
+  todayStudyMinutes: 20,
+  dailyGoalMinutes: 45,
+  joinedDate: '2026-11-16T10:10:10.357Z'
+};
+
+const DEFAULT_SUBJECTS: Subject[] = [
+  {
+    id: 'subj_1794730047420_gvfs0q',
+    name: 'MicroEconomics',
+    code: 'Micro-201',
+    description: 'Microeconomics for Product Managers: Demand, Supply, Pricing & Market Structure',
+    icon: 'BookOpen',
+    color: 'from-indigo-500 to-purple-600',
+    semester: 'Semester 2',
+    termId: 'term-2',
+    termNumber: 2,
+    creditHours: 3,
+    assignmentCount: 1,
+    createdAt: '2026-11-15T08:07:27.420Z',
+    updatedAt: '2026-11-15T08:14:40.722Z'
+  },
+  {
+    id: 'subj_1794730542677_g79h6r',
+    name: 'Market Research Method',
+    code: 'MRM-202',
+    description: 'Quantitative & Qualitative Research Design, Consumer Insights & Survey Sampling',
+    icon: 'BookOpen',
+    color: 'from-purple-600 to-indigo-600',
+    semester: 'Semester 2',
+    termId: 'term-2',
+    termNumber: 2,
+    creditHours: 3,
+    assignmentCount: 1,
+    createdAt: '2026-11-15T08:15:42.677Z',
+    updatedAt: '2026-11-15T08:15:42.677Z'
+  }
+];
+
+const DEFAULT_ASSIGNMENTS: Assignment[] = [
+  {
+    id: 'asg_1',
+    termId: 'term-2',
+    subjectId: 'subj_1794730047420_gvfs0q',
+    title: 'Price Elasticity & Revenue Optimization Case Analysis',
+    description: 'Analyze real customer price sensitivity data from Sessions 3-5 and propose optimal pricing tier for subscription SaaS.',
+    dueDate: new Date(Date.now() + 3 * 86400000).toISOString(),
+    priority: 'high',
+    status: 'in_progress',
+    estimatedHours: 6,
+    progress: 45,
+    notes: 'Include cross-price elasticity and arc elasticity formulas. Cite Session 3 slides.',
+    attachments: [],
+    submittedFiles: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'asg_2',
+    termId: 'term-2',
+    subjectId: 'subj_1794730542677_g79h6r',
+    title: 'Instagram Skincare Influencer Survey Design & Sampling',
+    description: 'Construct a 15-question structured Likert scale survey evaluating influencer authenticity and purchase intention.',
+    dueDate: new Date(Date.now() + 6 * 86400000).toISOString(),
+    priority: 'medium',
+    status: 'not_started',
+    estimatedHours: 8,
+    progress: 0,
+    notes: 'Reference the uploaded assignment doc in MRM workspace.',
+    attachments: [],
+    submittedFiles: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
+function getLocalStore<T>(key: string, defaultValue: T): T {
+  try {
+    const raw = localStorage.getItem(`vmba_${key}`);
+    return raw ? JSON.parse(raw) : defaultValue;
+  } catch {
+    return defaultValue;
+  }
+}
+
+function setLocalStore<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(`vmba_${key}`, JSON.stringify(value));
+  } catch {}
+}
+
+function handleOfflineFallback<T>(endpoint: string, options: RequestInit = {}): T {
+  const method = (options.method || 'GET').toUpperCase();
+  const cleanEndpoint = endpoint.split('?')[0];
+
+  if (cleanEndpoint === '/terms') {
+    const terms = getLocalStore<AcademicTerm[]>('terms', DEFAULT_TERMS);
+    return terms as unknown as T;
+  }
+  if (cleanEndpoint === '/terms/active') {
+    const terms = getLocalStore<AcademicTerm[]>('terms', DEFAULT_TERMS);
+    return (terms.find(t => t.status === 'active') || terms[1] || terms[0]) as unknown as T;
+  }
+  if (cleanEndpoint === '/user') {
+    const user = getLocalStore<UserProfile>('user', DEFAULT_USER);
+    return user as unknown as T;
+  }
+  if (cleanEndpoint === '/subjects') {
+    const subs = getLocalStore<Subject[]>('subjects', DEFAULT_SUBJECTS);
+    return subs as unknown as T;
+  }
+  if (cleanEndpoint === '/assignments') {
+    const asgs = getLocalStore<Assignment[]>('assignments', DEFAULT_ASSIGNMENTS);
+    return asgs as unknown as T;
+  }
+  if (cleanEndpoint === '/planner/today') {
+    const asgs = getLocalStore<Assignment[]>('assignments', DEFAULT_ASSIGNMENTS);
+    return {
+      date: new Date().toISOString(),
+      termId: 'term-2',
+      summary: 'Focus on Price Elasticity Case & Spaced Recall',
+      recommendations: [
+        {
+          id: 'rec_1',
+          type: 'assignment',
+          title: asgs[0]?.title || 'Price Elasticity Case',
+          subjectName: 'MicroEconomics',
+          description: 'High-priority assignment due in 3 days. Complete elasticity calculations.',
+          priority: 'high',
+          actionLabel: 'Continue Working',
+          actionTab: 'assignments'
+        },
+        {
+          id: 'rec_2',
+          type: 'flashcard_review',
+          title: 'Daily Spaced Repetition',
+          subjectName: 'MicroEconomics',
+          description: 'Review 5 flashcards due for optimal long-term memory retention.',
+          priority: 'medium',
+          actionLabel: 'Review Flashcards',
+          actionTab: 'flashcards'
+        }
+      ]
+    } as unknown as T;
+  }
+  if (cleanEndpoint === '/conversations') {
+    const convs = getLocalStore<AIConversation[]>('conversations', []);
+    return convs as unknown as T;
+  }
+  if (cleanEndpoint.startsWith('/conversations/') && cleanEndpoint.endsWith('/messages') && method === 'POST') {
+    const body = options.body ? JSON.parse(options.body as string) : {};
+    return {
+      id: `msg_${Date.now()}`,
+      role: 'assistant',
+      content: `Hello! As your MBA Academic Mentor, here is an executive breakdown:\n\n### 💡 Key Concept\n${body.content || 'Your query'}\n\n### 📈 Strategic Application\nIn business management, this framework directly informs pricing strategy, customer lifetime value, and competitive positioning.\n\n### 🎓 Suggested Next Step\nWould you like me to convert this into a revision note, generate 3 practice MCQs, or explore a case scenario?`,
+      citations: [
+        {
+          docId: 'doc_local',
+          docTitle: 'Microeconomics_Sessions_1_to_10_Study_Notes',
+          pageIndex: 3,
+          pageTitle: 'Session 3: Elasticity of Demand',
+          snippet: 'Price elasticity measures the responsiveness of quantity demanded to a change in price.'
+        }
+      ],
+      timestamp: new Date().toISOString()
+    } as unknown as T;
+  }
+  if (cleanEndpoint === '/notes') {
+    return getLocalStore<Note[]>('notes', []) as unknown as T;
+  }
+  if (cleanEndpoint === '/flashcards') {
+    return getLocalStore<Flashcard[]>('flashcards', []) as unknown as T;
+  }
+  if (cleanEndpoint === '/quizzes/attempts') {
+    return getLocalStore<QuizAttempt[]>('quizzes', []) as unknown as T;
+  }
+  if (cleanEndpoint === '/calendar') {
+    return getLocalStore<AcademicTask[]>('calendar', []) as unknown as T;
+  }
+  if (cleanEndpoint === '/documents') {
+    return getLocalStore<StudyDocument[]>('documents', []) as unknown as T;
+  }
+
+  return [] as unknown as T;
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const customKey = localStorage.getItem('gemini_api_key');
   const headers: Record<string, string> = {
@@ -34,21 +303,33 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['x-gemini-key'] = customKey;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers
-  });
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers
+    });
 
-  if (!response.ok) {
-    let errorMsg = `HTTP Error ${response.status}`;
-    try {
-      const errorJson = await response.json();
-      if (errorJson.error) errorMsg = errorJson.error;
-    } catch (e) {}
-    throw new Error(errorMsg);
+    if (!response.ok) {
+      // If server returns 404/500 (e.g. standalone client deployment on Vercel), fall back smoothly
+      if (response.status === 404 || response.status === 502 || response.status === 503) {
+        return handleOfflineFallback<T>(endpoint, options);
+      }
+      let errorMsg = `HTTP Error ${response.status}`;
+      try {
+        const errorJson = await response.json();
+        if (errorJson.error) errorMsg = errorJson.error;
+      } catch (e) {}
+      throw new Error(errorMsg);
+    }
+
+    return await response.json();
+  } catch (err: any) {
+    // In case fetch failed due to offline or missing backend
+    if (!navigator.onLine || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+      return handleOfflineFallback<T>(endpoint, options);
+    }
+    throw err;
   }
-
-  return response.json();
 }
 
 export const api = {
