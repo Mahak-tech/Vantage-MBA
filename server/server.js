@@ -113,23 +113,46 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // ==========================================
-// SUBJECTS
+// ACADEMIC TERMS (SIX-TERM JOURNEY)
+// ==========================================
+
+app.get('/api/terms', (req, res) => {
+  const terms = db.getAcademicTerms();
+  res.json(terms);
+});
+
+app.get('/api/terms/active', (req, res) => {
+  const activeTerm = db.getActiveTerm();
+  res.json(activeTerm);
+});
+
+app.put('/api/terms/:id', (req, res) => {
+  const updated = db.updateAcademicTerm(req.params.id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Academic term not found' });
+  res.json(updated);
+});
+
+// ==========================================
+// SUBJECTS (TERM-AWARE)
 // ==========================================
 
 app.get('/api/subjects', (req, res) => {
-  const subjects = db.getSubjects();
+  const { termId } = req.query;
+  const subjects = db.getSubjects(termId);
   // Include item counts for each subject
   const allDocs = db.getDocuments();
   const allNotes = db.getNotes();
   const allCards = db.getFlashcards();
   const allQuizzes = db.getQuizAttempts();
+  const allAssignments = db.getAssignments();
 
   const enriched = subjects.map(s => ({
     ...s,
     docCount: allDocs.filter(d => d.subjectId === s.id).length,
     notesCount: allNotes.filter(n => n.subjectId === s.id).length,
     cardsCount: allCards.filter(c => c.subjectId === s.id).length,
-    quizCount: allQuizzes.filter(q => q.subjectId === s.id).length
+    quizCount: allQuizzes.filter(q => q.subjectId === s.id).length,
+    assignmentCount: allAssignments.filter(a => a.subjectId === s.id).length
   }));
 
   res.json(enriched);
@@ -142,11 +165,11 @@ app.get('/api/subjects/:id', (req, res) => {
 });
 
 app.post('/api/subjects', (req, res) => {
-  const { name, code, description, icon, color, semester, creditHours } = req.body;
+  const { name, code, description, icon, color, semester, creditHours, termId, termNumber } = req.body;
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'Subject name is required.' });
   }
-  const newSubject = db.createSubject({ name, code, description, icon, color, semester, creditHours });
+  const newSubject = db.createSubject({ name, code, description, icon, color, semester, creditHours, termId, termNumber });
   res.status(201).json(newSubject);
 });
 
@@ -166,14 +189,14 @@ app.delete('/api/subjects/:id', (req, res) => {
 // ==========================================
 
 app.get('/api/documents', (req, res) => {
-  const subjectId = req.query.subjectId;
-  const docs = db.getDocuments(subjectId);
+  const { subjectId, termId, category } = req.query;
+  const docs = db.getDocuments(subjectId, termId, category);
   res.json(docs);
 });
 
 app.post('/api/documents/upload', upload.array('files', 10), async (req, res) => {
   try {
-    const { subjectId, moduleName } = req.body;
+    const { subjectId, moduleName, termId, category } = req.body;
     if (!subjectId) {
       return res.status(400).json({ error: 'subjectId is required for document upload.' });
     }
@@ -199,6 +222,7 @@ app.post('/api/documents/upload', upload.array('files', 10), async (req, res) =>
 
       const docRecord = db.createDocument({
         subjectId,
+        termId: termId || null,
         title: path.basename(file.originalname, path.extname(file.originalname)),
         fileName: file.filename,
         originalName: file.originalname,
@@ -206,6 +230,7 @@ app.post('/api/documents/upload', upload.array('files', 10), async (req, res) =>
         fileSize: file.size,
         status,
         error,
+        category: category || 'lecture_slides', // lecture_slides, case_study, assignment, project, reference
         extractedText: parsed ? parsed.text : '',
         pageCount: parsed ? parsed.pageCount : 1,
         pages: parsed ? parsed.pages : [],
@@ -469,7 +494,199 @@ app.post('/api/quizzes/submit', (req, res) => {
 });
 
 // ==========================================
-// AI TUTOR CONVERSATION
+// ASSIGNMENTS & DEADLINE MANAGER
+// ==========================================
+
+app.get('/api/assignments', (req, res) => {
+  const { termId, subjectId, status, priority } = req.query;
+  const asgs = db.getAssignments({ termId, subjectId, status, priority });
+  res.json(asgs);
+});
+
+app.get('/api/assignments/:id', (req, res) => {
+  const asg = db.getAssignmentById(req.params.id);
+  if (!asg) return res.status(404).json({ error: 'Assignment not found' });
+  res.json(asg);
+});
+
+app.post('/api/assignments', (req, res) => {
+  const { title, subjectId, termId, description, dueDate, priority, status, estimatedHours, notes } = req.body;
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'Assignment title is required' });
+  }
+  const created = db.createAssignment({ title, subjectId, termId, description, dueDate, priority, status, estimatedHours, notes });
+  res.status(201).json(created);
+});
+
+app.put('/api/assignments/:id', (req, res) => {
+  const updated = db.updateAssignment(req.params.id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Assignment not found' });
+  res.json(updated);
+});
+
+app.delete('/api/assignments/:id', (req, res) => {
+  db.deleteAssignment(req.params.id);
+  res.json({ success: true, message: 'Assignment deleted successfully' });
+});
+
+// ==========================================
+// MULTI-CONVERSATION AI TUTOR WORKSPACE
+// ==========================================
+
+app.get('/api/conversations', (req, res) => {
+  const { subjectId, termId, mode } = req.query;
+  const convs = db.getConversations({ subjectId, termId, mode });
+  res.json(convs);
+});
+
+app.get('/api/conversations/:id', (req, res) => {
+  const conv = db.getConversationById(req.params.id);
+  if (!conv) return res.status(404).json({ error: 'Conversation not found' });
+  res.json(conv);
+});
+
+app.post('/api/conversations', (req, res) => {
+  const { subjectId, termId, title, mode } = req.body;
+  if (!subjectId) return res.status(400).json({ error: 'subjectId is required for conversation' });
+  const created = db.createConversation({ subjectId, termId, title, mode });
+  res.status(201).json(created);
+});
+
+app.put('/api/conversations/:id', (req, res) => {
+  const updated = db.updateConversation(req.params.id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Conversation not found' });
+  res.json(updated);
+});
+
+app.delete('/api/conversations/:id', (req, res) => {
+  db.deleteConversation(req.params.id);
+  res.json({ success: true, message: 'Conversation deleted' });
+});
+
+app.post('/api/conversations/:id/messages', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content, actionPrompt, mode } = req.body;
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: 'Message content cannot be empty' });
+    }
+
+    const conversation = db.getConversationById(id);
+    if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
+
+    const subject = db.getSubjectById(conversation.subjectId);
+    if (!subject) return res.status(404).json({ error: 'Associated subject not found' });
+
+    // 1. Save user message
+    db.addMessageToConversation(id, {
+      role: 'user',
+      content
+    });
+
+    // 2. Perform strict RAG chunk search on ONLY this subject's documents
+    const subjectDocs = db.getDocuments(conversation.subjectId);
+    const allChunks = [];
+    for (const d of subjectDocs) {
+      if (d.extractedText) {
+        const chunks = chunkDocument(d);
+        allChunks.push(...chunks);
+      }
+    }
+
+    const relevantChunks = searchChunks(allChunks, content, 5, {
+      subjectId: conversation.subjectId,
+      category: mode === 'case_study' ? 'case_study' : undefined
+    });
+
+    // 3. Retrieve conversation history
+    const updatedConv = db.getConversationById(id);
+    const messages = updatedConv?.messages || [];
+
+    // 4. Generate AI response in specific mode
+    const effectiveMode = mode || conversation.mode || 'teach_me';
+    const tutorResponse = await chatWithTutor({
+      subjectName: subject.name,
+      messages,
+      docChunks: relevantChunks,
+      actionPrompt: actionPrompt || '',
+      mode: effectiveMode,
+      apiKey: req.headers['x-gemini-key']
+    });
+
+    // 5. Save assistant reply
+    const assistantMsg = db.addMessageToConversation(id, {
+      role: 'assistant',
+      content: tutorResponse.content,
+      citations: tutorResponse.citations
+    });
+
+    res.json(assistantMsg);
+  } catch (err) {
+    console.error('Conversation message failed:', err);
+    res.status(500).json({ error: err.message || 'Failed to process AI tutor message' });
+  }
+});
+
+// Conversion Actions from Chat
+app.post('/api/conversations/convert/note', (req, res) => {
+  try {
+    const { subjectId, title, content, type, topic } = req.body;
+    if (!subjectId || !content) return res.status(400).json({ error: 'subjectId and content required' });
+    const note = db.createNote({
+      subjectId,
+      title: title || 'AI Tutor Note',
+      type: type || 'complete',
+      topic: topic || 'Discussion Insight',
+      content,
+      tags: ['AI Tutor', type || 'complete']
+    });
+    res.status(201).json(note);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/conversations/convert/flashcards', (req, res) => {
+  try {
+    const { subjectId, cards, topic } = req.body;
+    if (!subjectId || !Array.isArray(cards)) return res.status(400).json({ error: 'subjectId and cards array required' });
+    const formatted = cards.map(c => ({
+      subjectId,
+      topic: topic || 'Key Concepts',
+      deckTitle: 'From AI Tutor',
+      front: c.front,
+      back: c.back
+    }));
+    const saved = db.createFlashcardsBatch(formatted);
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/conversations/convert/mcqs', (req, res) => {
+  try {
+    const { subjectId, questions, topic } = req.body;
+    if (!subjectId || !Array.isArray(questions)) return res.status(400).json({ error: 'subjectId and questions array required' });
+    const saved = db.createQuestionsBatch(questions);
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// PERSONALIZED STUDY PLANNER ("WHAT SHOULD I STUDY TODAY?")
+// ==========================================
+
+app.get('/api/planner/today', (req, res) => {
+  const { termId } = req.query;
+  const plan = db.getTodayStudyPlan(termId || 'term-2');
+  res.json(plan);
+});
+
+// ==========================================
+// AI TUTOR CONVERSATION (LEGACY DIRECT CHAT)
 // ==========================================
 
 app.get('/api/tutor/messages', (req, res) => {

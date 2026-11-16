@@ -1,6 +1,8 @@
 import React from 'react';
 import {
   LayoutDashboard,
+  Compass,
+  CheckSquare,
   BookOpen,
   FolderOpen,
   FileText,
@@ -27,6 +29,7 @@ interface SidebarProps {
   openCreateSubjectModal: () => void;
   user: UserProfile | null;
   onLogout?: () => void;
+  assignmentsCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -37,10 +40,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setSelectedSubjectId,
   openCreateSubjectModal,
   user,
-  onLogout
+  onLogout,
+  assignmentsCount = 0
 }) => {
   const mainNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'journey', label: 'My MBA Journey', icon: Compass },
+    { id: 'assignments', label: 'Assignments', icon: CheckSquare, badge: assignmentsCount },
     { id: 'subjects', label: 'My Subjects', icon: BookOpen, badge: subjects.length },
     { id: 'materials', label: 'Study Materials', icon: FolderOpen },
     { id: 'notes', label: 'AI Notes', icon: FileText },

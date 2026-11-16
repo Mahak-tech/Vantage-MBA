@@ -15,6 +15,82 @@ try {
   // Ignored in read-only environments
 }
 
+// Default Six MBA Terms
+const defaultAcademicTerms = [
+  {
+    id: 'term-1',
+    termNumber: 1,
+    name: 'Term 1',
+    status: 'completed',
+    credits: 18,
+    gpa: '3.85',
+    startDate: '2026-07-01',
+    endDate: '2026-10-15',
+    description: 'Foundation MBA Core: Financial Accounting, Quantitative Methods, Marketing Management & Organizational Behavior',
+    isCurrent: false
+  },
+  {
+    id: 'term-2',
+    termNumber: 2,
+    name: 'Term 2',
+    status: 'active',
+    credits: 18,
+    gpa: null,
+    startDate: '2026-10-20',
+    endDate: '2027-01-30',
+    description: 'Active Term: Microeconomics, Market Research Methods, Corporate Finance & Business Analytics',
+    isCurrent: true
+  },
+  {
+    id: 'term-3',
+    termNumber: 3,
+    name: 'Term 3',
+    status: 'upcoming',
+    credits: 18,
+    gpa: null,
+    startDate: '2027-02-05',
+    endDate: '2027-05-15',
+    description: 'Advanced Operations, Supply Chain Strategy & Managerial Macroeconomics',
+    isCurrent: false
+  },
+  {
+    id: 'term-4',
+    termNumber: 4,
+    name: 'Term 4',
+    status: 'upcoming',
+    credits: 18,
+    gpa: null,
+    startDate: '2027-06-01',
+    endDate: '2027-09-15',
+    description: 'Product Leadership, Global Competitive Strategy & Technology Commercialization',
+    isCurrent: false
+  },
+  {
+    id: 'term-5',
+    termNumber: 5,
+    name: 'Term 5',
+    status: 'upcoming',
+    credits: 18,
+    gpa: null,
+    startDate: '2027-10-01',
+    endDate: '2028-01-15',
+    description: 'Venture Capital, Tech Entrepreneurship & Specialized Electives',
+    isCurrent: false
+  },
+  {
+    id: 'term-6',
+    termNumber: 6,
+    name: 'Term 6',
+    status: 'upcoming',
+    credits: 18,
+    gpa: null,
+    startDate: '2028-02-01',
+    endDate: '2028-05-30',
+    description: 'Capstone Consulting Immersion, Strategic Mergers & Executive Leadership',
+    isCurrent: false
+  }
+];
+
 // Initial Database Structure
 const initialData = {
   settings: {
@@ -36,9 +112,12 @@ const initialData = {
     dailyGoalMinutes: 45,
     joinedDate: new Date().toISOString()
   },
+  academicTerms: defaultAcademicTerms,
   subjects: [],
   documents: [],
   notes: [],
+  assignments: [],
+  conversations: [],
   flashcardDecks: [],
   flashcards: [],
   questions: [],
@@ -84,6 +163,96 @@ function loadDb() {
         dbCache[key] = initialData[key];
       }
     }
+
+    let dirty = false;
+
+    // Auto-migrate Academic Terms (Six Terms)
+    if (!Array.isArray(dbCache.academicTerms) || dbCache.academicTerms.length < 6) {
+      dbCache.academicTerms = JSON.parse(JSON.stringify(defaultAcademicTerms));
+      dirty = true;
+    }
+
+    // Ensure assignments list exists and has initial Term 2 assignments if empty
+    if (!Array.isArray(dbCache.assignments) || dbCache.assignments.length === 0) {
+      dbCache.assignments = [
+        {
+          id: 'asg_1',
+          termId: 'term-2',
+          subjectId: dbCache.subjects[0]?.id || 'subj_1794730047420_gvfs0q',
+          title: 'Price Elasticity & Revenue Optimization Case Analysis',
+          description: 'Analyze real customer price sensitivity data from Sessions 3-5 and propose optimal pricing tier for subscription SaaS.',
+          dueDate: new Date(Date.now() + 3 * 86400000).toISOString(),
+          priority: 'high',
+          status: 'in_progress',
+          estimatedHours: 6,
+          progress: 45,
+          notes: 'Include cross-price elasticity and arc elasticity formulas. Cite Session 3 slides.',
+          attachments: [],
+          submittedFiles: []
+        },
+        {
+          id: 'asg_2',
+          termId: 'term-2',
+          subjectId: dbCache.subjects[1]?.id || 'subj_1794730542677_g79h6r',
+          title: 'Instagram Skincare Influencer Survey Design & Sampling',
+          description: 'Construct a 15-question structured Likert scale survey evaluating influencer authenticity and purchase intention.',
+          dueDate: new Date(Date.now() + 6 * 86400000).toISOString(),
+          priority: 'medium',
+          status: 'not_started',
+          estimatedHours: 8,
+          progress: 0,
+          notes: 'Reference the uploaded assignment doc in MRM workspace.',
+          attachments: [],
+          submittedFiles: []
+        }
+      ];
+      dirty = true;
+    }
+
+    // Ensure conversations list exists
+    if (!Array.isArray(dbCache.conversations)) {
+      dbCache.conversations = [];
+    }
+
+    // Ensure subjects have termId set to 'term-2' by default (Term 2 Active)
+    if (Array.isArray(dbCache.subjects)) {
+      dbCache.subjects.forEach(s => {
+        if (!s.termId) {
+          s.termId = 'term-2';
+          s.termNumber = 2;
+          dirty = true;
+        }
+      });
+    }
+
+    // Ensure documents have termId and category
+    if (Array.isArray(dbCache.documents)) {
+      dbCache.documents.forEach(d => {
+        if (!d.termId) {
+          d.termId = 'term-2';
+          dirty = true;
+        }
+        if (!d.category) {
+          d.category = 'lecture_slides';
+          dirty = true;
+        }
+      });
+    }
+
+    // Ensure notes have termId
+    if (Array.isArray(dbCache.notes)) {
+      dbCache.notes.forEach(n => {
+        if (!n.termId) {
+          n.termId = 'term-2';
+          dirty = true;
+        }
+      });
+    }
+
+    if (dirty) {
+      saveDb(dbCache);
+    }
+
     return dbCache;
   } catch (err) {
     console.error('Error reading db.json, creating new one:', err);
@@ -146,19 +315,99 @@ const db = {
     return data.user;
   },
 
-  // Subjects
-  getSubjects: () => loadDb().subjects,
+  // ==========================================
+  // ACADEMIC TERMS (SIX-TERM JOURNEY)
+  // ==========================================
+  getAcademicTerms: () => {
+    const data = loadDb();
+    const terms = data.academicTerms || defaultAcademicTerms;
+    const subjects = data.subjects || [];
+    const documents = data.documents || [];
+    const assignments = data.assignments || [];
+
+    return terms.map(term => {
+      const termSubjects = subjects.filter(s => (s.termId === term.id || s.termNumber === term.termNumber));
+      const termSubjectIds = new Set(termSubjects.map(s => s.id));
+      const termDocs = documents.filter(d => (d.termId === term.id || termSubjectIds.has(d.subjectId)));
+      const termAssignments = assignments.filter(a => (a.termId === term.id || termSubjectIds.has(a.subjectId)));
+      const pendingAsg = termAssignments.filter(a => a.status !== 'completed' && a.status !== 'submitted');
+
+      return {
+        ...term,
+        subjectCount: termSubjects.length,
+        docCount: termDocs.length,
+        assignmentCount: termAssignments.length,
+        pendingAssignments: pendingAsg.length,
+        subjects: termSubjects.map(s => ({ id: s.id, name: s.name, code: s.code, color: s.color, icon: s.icon }))
+      };
+    });
+  },
+
+  getAcademicTermById: (id) => {
+    const data = loadDb();
+    const terms = data.academicTerms || defaultAcademicTerms;
+    return terms.find(t => t.id === id || String(t.termNumber) === String(id));
+  },
+
+  updateAcademicTerm: (id, updates) => {
+    const data = loadDb();
+    if (!data.academicTerms) data.academicTerms = JSON.parse(JSON.stringify(defaultAcademicTerms));
+    const idx = data.academicTerms.findIndex(t => t.id === id || String(t.termNumber) === String(id));
+    if (idx === -1) return null;
+
+    // If making this term active, we can mark it as active
+    if (updates.status === 'active') {
+      data.academicTerms.forEach(t => {
+        if (t.id !== id && t.status === 'active') {
+          // keep previous status or allow single active term
+        }
+      });
+    }
+
+    data.academicTerms[idx] = {
+      ...data.academicTerms[idx],
+      ...updates
+    };
+    saveDb(data);
+    return data.academicTerms[idx];
+  },
+
+  getActiveTerm: () => {
+    const data = loadDb();
+    const terms = data.academicTerms || defaultAcademicTerms;
+    const active = terms.find(t => t.status === 'active');
+    return active || terms[1] || terms[0]; // Default to Term 2 (index 1)
+  },
+
+  // ==========================================
+  // SUBJECTS (TERM-AWARE)
+  // ==========================================
+  getSubjects: (termId) => {
+    const data = loadDb();
+    let subjects = data.subjects || [];
+    if (termId && termId !== 'all') {
+      subjects = subjects.filter(s => s.termId === termId || String(s.termNumber) === String(termId.replace('term-', '')));
+    }
+    return subjects;
+  },
+
   getSubjectById: (id) => loadDb().subjects.find(s => s.id === id),
+
   createSubject: (subject) => {
     const data = loadDb();
+    const targetTermId = subject.termId || 'term-2';
+    const termNum = subject.termNumber || (targetTermId.startsWith('term-') ? parseInt(targetTermId.replace('term-', ''), 10) : 2);
+
     const newSubject = {
       id: subject.id || `subj_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      termId: targetTermId,
+      termNumber: termNum,
       name: subject.name,
       code: subject.code || '',
       description: subject.description || '',
       icon: subject.icon || 'BookOpen',
       color: subject.color || 'from-indigo-500 to-purple-600',
-      semester: subject.semester || 'Semester 1',
+      semester: subject.semester || `Term ${termNum}`,
       creditHours: subject.creditHours || 3,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -167,6 +416,7 @@ const db = {
     saveDb(data);
     return newSubject;
   },
+
   updateSubject: (id, updates) => {
     const data = loadDb();
     const index = data.subjects.findIndex(s => s.id === id);
@@ -179,6 +429,7 @@ const db = {
     saveDb(data);
     return data.subjects[index];
   },
+
   deleteSubject: (id) => {
     const data = loadDb();
     data.subjects = data.subjects.filter(s => s.id !== id);
@@ -190,28 +441,56 @@ const db = {
     data.questions = data.questions.filter(q => q.subjectId !== id);
     data.quizzes = data.quizzes.filter(q => q.subjectId !== id);
     data.tutorMessages = data.tutorMessages.filter(m => m.subjectId !== id);
+    if (data.conversations) {
+      data.conversations = data.conversations.filter(c => c.subjectId !== id);
+    }
+    if (data.assignments) {
+      data.assignments = data.assignments.filter(a => a.subjectId !== id);
+    }
     data.visualStudioItems = data.visualStudioItems.filter(v => v.subjectId !== id);
     data.calendarTasks = data.calendarTasks.filter(t => t.subjectId !== id);
     saveDb(data);
     return true;
   },
 
-  // Documents
-  getDocuments: (subjectId) => {
-    const docs = loadDb().documents;
-    return subjectId ? docs.filter(d => d.subjectId === subjectId) : docs;
+  // ==========================================
+  // STUDY MATERIALS & DOCUMENTS (WITH CATEGORIES)
+  // ==========================================
+  getDocuments: (subjectId, termId, category) => {
+    let docs = loadDb().documents || [];
+    if (subjectId) {
+      docs = docs.filter(d => d.subjectId === subjectId);
+    }
+    if (termId && termId !== 'all') {
+      docs = docs.filter(d => d.termId === termId);
+    }
+    if (category && category !== 'all') {
+      docs = docs.filter(d => d.category === category);
+    }
+    return docs;
   },
+
   getDocumentById: (id) => loadDb().documents.find(d => d.id === id),
+
   createDocument: (doc) => {
     const data = loadDb();
+    // Inherit termId from subject if available
+    let termId = doc.termId;
+    if (!termId && doc.subjectId) {
+      const parentSubj = data.subjects.find(s => s.id === doc.subjectId);
+      if (parentSubj) termId = parentSubj.termId;
+    }
+
     const newDoc = {
       id: doc.id || `doc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       subjectId: doc.subjectId,
+      termId: termId || 'term-2',
       title: doc.title,
       fileName: doc.fileName,
       originalName: doc.originalName,
       fileType: doc.fileType,
       fileSize: doc.fileSize,
+      category: doc.category || 'lecture_slides', // lecture_slides, case_study, assignment, project, reference
       uploadDate: new Date().toISOString(),
       status: doc.status || 'completed',
       error: doc.error || null,
@@ -481,6 +760,321 @@ const db = {
     data.tutorMessages = data.tutorMessages.filter(m => m.subjectId !== subjectId);
     saveDb(data);
     return true;
+  },
+
+  // ==========================================
+  // MULTI-CONVERSATION AI TUTOR WORKSPACE
+  // ==========================================
+  getConversations: (filter = {}) => {
+    const data = loadDb();
+    let convs = data.conversations || [];
+    if (filter.subjectId) {
+      convs = convs.filter(c => c.subjectId === filter.subjectId);
+    }
+    if (filter.termId && filter.termId !== 'all') {
+      convs = convs.filter(c => !c.termId || c.termId === filter.termId);
+    }
+    if (filter.mode) {
+      convs = convs.filter(c => c.mode === filter.mode);
+    }
+    return convs.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+  },
+
+  getConversationById: (id) => {
+    const data = loadDb();
+    const convs = data.conversations || [];
+    return convs.find(c => c.id === id);
+  },
+
+  createConversation: (conv) => {
+    const data = loadDb();
+    if (!data.conversations) data.conversations = [];
+    const newConv = {
+      id: conv.id || `conv_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      subjectId: conv.subjectId,
+      termId: conv.termId || 'term-2',
+      title: conv.title || 'New Tutoring Session',
+      mode: conv.mode || 'teach_me', // teach_me, notes_maker, practice_me, exam_prep, case_study, assignment_assistant, doubt_solver, visual_teacher
+      messages: conv.messages || [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    data.conversations.unshift(newConv);
+    saveDb(data);
+    return newConv;
+  },
+
+  updateConversation: (id, updates) => {
+    const data = loadDb();
+    if (!data.conversations) data.conversations = [];
+    const idx = data.conversations.findIndex(c => c.id === id);
+    if (idx === -1) return null;
+    data.conversations[idx] = {
+      ...data.conversations[idx],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    saveDb(data);
+    return data.conversations[idx];
+  },
+
+  deleteConversation: (id) => {
+    const data = loadDb();
+    if (!data.conversations) data.conversations = [];
+    data.conversations = data.conversations.filter(c => c.id !== id);
+    saveDb(data);
+    return true;
+  },
+
+  addMessageToConversation: (id, message) => {
+    const data = loadDb();
+    if (!data.conversations) data.conversations = [];
+    const idx = data.conversations.findIndex(c => c.id === id);
+    if (idx === -1) return null;
+
+    const newMsg = {
+      id: message.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      role: message.role, // 'user' | 'assistant'
+      content: message.content,
+      citations: message.citations || [],
+      timestamp: new Date().toISOString()
+    };
+
+    if (!Array.isArray(data.conversations[idx].messages)) {
+      data.conversations[idx].messages = [];
+    }
+    data.conversations[idx].messages.push(newMsg);
+    data.conversations[idx].updatedAt = new Date().toISOString();
+
+    // Auto-update conversation title from first user message if default
+    if (message.role === 'user' && data.conversations[idx].messages.length <= 2 && data.conversations[idx].title.startsWith('New Tutoring')) {
+      data.conversations[idx].title = message.content.substring(0, 45) + (message.content.length > 45 ? '...' : '');
+    }
+
+    saveDb(data);
+    return newMsg;
+  },
+
+  // ==========================================
+  // ASSIGNMENTS & DEADLINE MANAGER
+  // ==========================================
+  getAssignments: (filters = {}) => {
+    const data = loadDb();
+    let asgs = data.assignments || [];
+    if (filters.subjectId) {
+      asgs = asgs.filter(a => a.subjectId === filters.subjectId);
+    }
+    if (filters.termId && filters.termId !== 'all') {
+      asgs = asgs.filter(a => !a.termId || a.termId === filters.termId);
+    }
+    if (filters.status) {
+      asgs = asgs.filter(a => a.status === filters.status);
+    }
+    if (filters.priority) {
+      asgs = asgs.filter(a => a.priority === filters.priority);
+    }
+
+    // Auto-check overdue status
+    const now = new Date();
+    asgs.forEach(a => {
+      if (a.status !== 'completed' && a.status !== 'submitted' && a.dueDate) {
+        if (new Date(a.dueDate) < now) {
+          a.isOverdue = true;
+        }
+      }
+    });
+
+    return asgs.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  },
+
+  getAssignmentById: (id) => {
+    const data = loadDb();
+    const asgs = data.assignments || [];
+    return asgs.find(a => a.id === id);
+  },
+
+  createAssignment: (asg) => {
+    const data = loadDb();
+    if (!data.assignments) data.assignments = [];
+
+    // Derive termId from subject if not provided
+    let termId = asg.termId;
+    if (!termId && asg.subjectId) {
+      const parentSubj = data.subjects.find(s => s.id === asg.subjectId);
+      if (parentSubj) termId = parentSubj.termId;
+    }
+
+    const newAsg = {
+      id: asg.id || `asg_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      subjectId: asg.subjectId,
+      termId: termId || 'term-2',
+      title: asg.title,
+      description: asg.description || '',
+      dueDate: asg.dueDate || new Date(Date.now() + 7 * 86400000).toISOString(),
+      priority: asg.priority || 'medium', // low, medium, high
+      status: asg.status || 'not_started', // not_started, in_progress, completed, submitted, overdue
+      estimatedHours: asg.estimatedHours || 4,
+      progress: asg.progress || 0, // 0 - 100
+      notes: asg.notes || '',
+      attachments: asg.attachments || [],
+      submittedFiles: asg.submittedFiles || [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    data.assignments.push(newAsg);
+    saveDb(data);
+    return newAsg;
+  },
+
+  updateAssignment: (id, updates) => {
+    const data = loadDb();
+    if (!data.assignments) data.assignments = [];
+    const idx = data.assignments.findIndex(a => a.id === id);
+    if (idx === -1) return null;
+
+    data.assignments[idx] = {
+      ...data.assignments[idx],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    // If marked completed or submitted, set progress to 100
+    if (updates.status === 'completed' || updates.status === 'submitted') {
+      data.assignments[idx].progress = 100;
+    }
+
+    saveDb(data);
+    return data.assignments[idx];
+  },
+
+  deleteAssignment: (id) => {
+    const data = loadDb();
+    if (!data.assignments) data.assignments = [];
+    data.assignments = data.assignments.filter(a => a.id !== id);
+    saveDb(data);
+    return true;
+  },
+
+  // ==========================================
+  // PERSONALIZED STUDY PLANNER ("WHAT SHOULD I STUDY TODAY?")
+  // ==========================================
+  getTodayStudyPlan: (termId = 'term-2') => {
+    const data = loadDb();
+    const subjects = data.subjects.filter(s => !termId || termId === 'all' || s.termId === termId);
+    const assignments = (data.assignments || []).filter(a => !termId || termId === 'all' || a.termId === termId);
+    const quizzes = data.quizAttempts || [];
+    const allCards = data.flashcards || [];
+    const user = data.user || {};
+
+    const now = new Date();
+    const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000);
+
+    // 1. Urgent Assignments
+    const urgentAssignments = assignments.filter(a => {
+      if (a.status === 'completed' || a.status === 'submitted') return false;
+      const due = new Date(a.dueDate);
+      return due <= sevenDaysFromNow;
+    });
+
+    // 2. Weak Topics (<70% on quizzes)
+    const weakTopics = [];
+    quizzes.forEach(q => {
+      if (q.topicBreakdown) {
+        q.topicBreakdown.forEach(tb => {
+          if (tb.percentage < 70) {
+            const subj = subjects.find(s => s.id === q.subjectId);
+            weakTopics.push({
+              subjectName: subj?.name || 'MBA Core',
+              subjectId: q.subjectId,
+              topic: tb.topic,
+              percentage: tb.percentage
+            });
+          }
+        });
+      }
+    });
+
+    // 3. Due Flashcards (Spaced Repetition)
+    const dueCards = allCards.filter(c => {
+      if (!c.nextReviewDate) return true;
+      return new Date(c.nextReviewDate) <= now;
+    });
+
+    // Synthesize structured recommendations
+    const recommendations = [];
+
+    if (urgentAssignments.length > 0) {
+      const topAsg = urgentAssignments[0];
+      const subj = subjects.find(s => s.id === topAsg.subjectId);
+      const daysLeft = Math.max(1, Math.round((new Date(topAsg.dueDate).getTime() - now.getTime()) / 86400000));
+      recommendations.push({
+        id: 'rec_asg',
+        type: 'assignment',
+        priority: 'high',
+        title: `Work on "${topAsg.title}"`,
+        subjectName: subj?.name || 'Coursework',
+        subjectId: topAsg.subjectId,
+        actionUrl: 'assignments',
+        description: `Due in ${daysLeft} days. Current progress is ${topAsg.progress}%. Use Assignment Assistant to outline next section.`,
+        durationMinutes: 45
+      });
+    }
+
+    if (weakTopics.length > 0) {
+      const topWeak = weakTopics[0];
+      recommendations.push({
+        id: 'rec_weak',
+        type: 'revision',
+        priority: 'high',
+        title: `Revise "${topWeak.topic}" in ${topWeak.subjectName}`,
+        subjectName: topWeak.subjectName,
+        subjectId: topWeak.subjectId,
+        actionUrl: 'tutor',
+        description: `Scored ${topWeak.percentage}% on recent quiz. Open AI Tutor in "Teach Me" mode to master this concept.`,
+        durationMinutes: 20
+      });
+    }
+
+    if (dueCards.length > 0) {
+      recommendations.push({
+        id: 'rec_cards',
+        type: 'flashcards',
+        priority: 'medium',
+        title: `Active Recall: ${Math.min(10, dueCards.length)} Flashcards Due`,
+        subjectName: 'Retention Workout',
+        actionUrl: 'flashcards',
+        description: `Spaced repetition scheduled for today. Review these cards to retain core MBA definitions.`,
+        durationMinutes: 10
+      });
+    }
+
+    // Default subject practice if fewer than 3 recommendations
+    if (recommendations.length < 3 && subjects.length > 0) {
+      const sub = subjects[0];
+      recommendations.push({
+        id: 'rec_practice',
+        type: 'practice',
+        priority: 'medium',
+        title: `Take a 5-minute Mock Quiz in ${sub.name}`,
+        subjectName: sub.name,
+        subjectId: sub.id,
+        actionUrl: 'practice',
+        description: `Practice 5 exam-predicted questions to strengthen exam readiness.`,
+        durationMinutes: 15
+      });
+    }
+
+    return {
+      date: now.toISOString(),
+      dailyGoalMinutes: user.dailyGoalMinutes || 45,
+      todayStudyMinutes: user.todayStudyMinutes || 0,
+      studyStreak: user.studyStreak || 1,
+      recommendations,
+      urgentAssignmentsCount: urgentAssignments.length,
+      weakTopicsCount: weakTopics.length,
+      dueFlashcardsCount: dueCards.length
+    };
   },
 
   // Visual Learning Studio Items

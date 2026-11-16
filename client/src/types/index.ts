@@ -1,5 +1,27 @@
+export type TermStatus = 'active' | 'completed' | 'upcoming' | 'archived';
+
+export interface AcademicTerm {
+  id: string;
+  termNumber: number;
+  name: string;
+  status: TermStatus;
+  credits?: number;
+  gpa?: string | null;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+  isCurrent?: boolean;
+  subjectCount?: number;
+  docCount?: number;
+  assignmentCount?: number;
+  pendingAssignments?: number;
+  subjects?: Array<{ id: string; name: string; code?: string; color?: string; icon?: string }>;
+}
+
 export interface Subject {
   id: string;
+  termId?: string;
+  termNumber?: number;
   name: string;
   code?: string;
   description?: string;
@@ -11,6 +33,7 @@ export interface Subject {
   notesCount?: number;
   cardsCount?: number;
   quizCount?: number;
+  assignmentCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -21,14 +44,18 @@ export interface DocumentPage {
   text: string;
 }
 
+export type DocumentCategory = 'lecture_slides' | 'case_study' | 'assignment' | 'project' | 'reference' | string;
+
 export interface StudyDocument {
   id: string;
   subjectId: string;
+  termId?: string;
   title: string;
   fileName: string;
   originalName: string;
   fileType: 'pdf' | 'pptx' | 'ppt' | 'docx' | 'doc' | 'txt' | string;
   fileSize: number;
+  category?: DocumentCategory;
   uploadDate: string;
   status: 'uploading' | 'processing' | 'completed' | 'failed';
   error?: string | null;
@@ -251,4 +278,81 @@ export interface WeeklyStatItem {
   day: string;
   minutes: number;
   label: string;
+}
+
+// Assignments & Deadlines
+export type AssignmentStatus = 'not_started' | 'in_progress' | 'completed' | 'submitted' | 'overdue';
+export type AssignmentPriority = 'low' | 'medium' | 'high';
+
+export interface Assignment {
+  id: string;
+  subjectId: string;
+  termId?: string;
+  title: string;
+  description?: string;
+  dueDate: string;
+  priority: AssignmentPriority;
+  status: AssignmentStatus;
+  estimatedHours: number;
+  progress: number;
+  notes?: string;
+  attachments?: any[];
+  submittedFiles?: any[];
+  isOverdue?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// 8 Advanced Subject Teaching Modes
+export type TeachingMode =
+  | 'teach_me'
+  | 'notes_maker'
+  | 'practice_me'
+  | 'exam_prep'
+  | 'case_study'
+  | 'assignment_assistant'
+  | 'doubt_solver'
+  | 'visual_teacher';
+
+export interface ConversationMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  citations?: TutorCitation[];
+  timestamp: string;
+}
+
+export interface AIConversation {
+  id: string;
+  subjectId: string;
+  termId?: string;
+  title: string;
+  mode: TeachingMode;
+  messages: ConversationMessage[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Personalized Daily Study Recommendations
+export interface StudyPlanRecommendation {
+  id: string;
+  type: 'assignment' | 'revision' | 'flashcards' | 'practice';
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  subjectName: string;
+  subjectId?: string;
+  actionUrl: string;
+  description: string;
+  durationMinutes: number;
+}
+
+export interface TodayStudyPlan {
+  date: string;
+  dailyGoalMinutes: number;
+  todayStudyMinutes: number;
+  studyStreak: number;
+  recommendations: StudyPlanRecommendation[];
+  urgentAssignmentsCount: number;
+  weakTopicsCount: number;
+  dueFlashcardsCount: number;
 }

@@ -49,8 +49,13 @@ function chunkDocument(doc) {
       if ((currentChunk + ' ' + para).length > 800 && currentChunk.length > 0) {
         chunks.push({
           id: `${doc.id}_p${page.index}_c${chunkSeq}`,
+          userId: doc.userId || 'user_default',
+          termId: doc.termId || 'term-2',
+          subjectId: doc.subjectId,
           docId: doc.id,
           docTitle: doc.title || doc.originalName,
+          category: doc.category || 'lecture_slides',
+          module: doc.module || 'General',
           pageIndex: page.index,
           pageTitle: page.title || `Page/Slide ${page.index}`,
           text: currentChunk.trim(),
@@ -66,8 +71,13 @@ function chunkDocument(doc) {
     if (currentChunk.trim().length > 0) {
       chunks.push({
         id: `${doc.id}_p${page.index}_c${chunkSeq}`,
+        userId: doc.userId || 'user_default',
+        termId: doc.termId || 'term-2',
+        subjectId: doc.subjectId,
         docId: doc.id,
         docTitle: doc.title || doc.originalName,
+        category: doc.category || 'lecture_slides',
+        module: doc.module || 'General',
         pageIndex: page.index,
         pageTitle: page.title || `Page/Slide ${page.index}`,
         text: currentChunk.trim(),
@@ -80,19 +90,34 @@ function chunkDocument(doc) {
 }
 
 /**
- * Search chunks using BM25-like scoring
+ * Search chunks using BM25-like scoring with strict subject & term isolation
  */
-function searchChunks(chunks, query, topK = 4) {
+function searchChunks(chunks, query, topK = 4, filterOpts = {}) {
   if (!chunks || chunks.length === 0) return [];
+
+  // Enforce strict isolation
+  let activeChunks = chunks;
+  if (filterOpts.subjectId) {
+    activeChunks = activeChunks.filter(c => c.subjectId === filterOpts.subjectId);
+  }
+  if (filterOpts.category && filterOpts.category !== 'all') {
+    activeChunks = activeChunks.filter(c => c.category === filterOpts.category);
+  }
+  if (filterOpts.termId && filterOpts.termId !== 'all') {
+    activeChunks = activeChunks.filter(c => !c.termId || c.termId === filterOpts.termId);
+  }
+
+  if (activeChunks.length === 0) return [];
+
   if (!query || !query.trim()) {
-    return chunks.slice(0, topK);
+    return activeChunks.slice(0, topK);
   }
 
   const queryTokens = tokenize(query).filter(t => !STOP_WORDS.has(t));
-  if (queryTokens.length === 0) return chunks.slice(0, topK);
+  if (queryTokens.length === 0) return activeChunks.slice(0, topK);
 
   // Calculate scores
-  const scored = chunks.map(chunk => {
+  const scored = activeChunks.map(chunk => {
     let score = 0;
     const chunkTokens = new Set(chunk.tokens);
     const chunkTextLower = chunk.text.toLowerCase();

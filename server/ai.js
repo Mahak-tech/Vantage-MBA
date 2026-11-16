@@ -427,38 +427,118 @@ Return as a JSON array of objects matching this schema. Return ONLY JSON.`;
 }
 
 /**
- * AI Tutor Chatbot with RAG citations
+ * AI Tutor Chatbot with RAG citations and 8 Subject Teaching Modes
  */
-async function chatWithTutor({ subjectName, messages = [], docChunks = [], actionPrompt = '', apiKey = null }) {
+async function chatWithTutor({ subjectName, messages = [], docChunks = [], actionPrompt = '', mode = 'teach_me', apiKey = null }) {
   const lastUserMessage = messages[messages.length - 1]?.content || '';
   const effectiveQuery = actionPrompt ? `${actionPrompt}: ${lastUserMessage}` : lastUserMessage;
   
   const { contextText, citations } = formatRagContext(docChunks);
   const genAI = getGeminiClient(apiKey);
 
-  if (!genAI) {
-    // Local Tutor Response
-    let reply = `Hello! As your MBA Academic Mentor for **${subjectName}**, let's analyze this step-by-step.\n\n`;
+  // Mode instruction mapping
+  let modeInstruction = '';
+  switch (mode) {
+    case 'teach_me':
+      modeInstruction = `MODE: TEACH ME (Beginner-Friendly Intuition)
+- Explain from absolute beginner level in clean, intuitive language without dense jargon.
+- Break complex concepts into clearly numbered sequential steps.
+- Provide real-life analogies and MBA business examples (e.g. Apple, Amazon, Netflix, Uber).
+- Explain any technical terminology before using it.
+- Conclude with a friendly check-for-understanding question.`;
+      break;
+    case 'notes_maker':
+      modeInstruction = `MODE: NOTES MAKER (Executive Synthesis)
+- Synthesize the course material into comprehensive, beautifully structured notes.
+- Use Markdown headers (H1, H2, H3), bold key definitions, and Markdown comparison tables.
+- Highlight formulas, calculations, and practical MBA applications.
+- Include a "Key Takeaways" executive summary.`;
+      break;
+    case 'practice_me':
+      modeInstruction = `MODE: PRACTICE ME (Smart Questions & MCQs)
+- Generate targeted MBA practice questions (MCQs, numerical problems, short questions, application-based).
+- Include complete step-by-step solutions and business logic.
+- Explain why incorrect options are misleading or wrong.`;
+      break;
+    case 'exam_prep':
+      modeInstruction = `MODE: EXAM PREPARATION (Practice Predictions & Model Answers)
+- Generate potential examination questions (clearly labeled as "Practice Exam Predictions", not guaranteed questions).
+- Formulate 2-mark definitions, 5-mark conceptual questions, and 10-mark strategic essays.
+- Provide comprehensive model answers with marking schemes and key points the professor looks for.
+- If evaluating a student-written answer, provide constructive grading and rubric feedback.`;
+      break;
+    case 'case_study':
+      modeInstruction = `MODE: CASE STUDY ANALYST (Strategic Business Breakdown)
+- Read and analyze the case study material thoroughly.
+- Structure your response:
+  1. Executive Summary & Context
+  2. Core Business Problem / Decision to Make
+  3. Key Stakeholders & Conflicting Priorities
+  4. Financial & Quantitative Facts/Figures from the case
+  5. Applicable MBA Theories & Strategic Frameworks (Porter's 5 Forces, VRIO, Pricing Elasticity, etc.)
+  6. Strategic Alternatives (Pros, Cons, Risks)
+  7. Recommended Strategic Action Plan
+  8. Examination-Style Case Answer`;
+      break;
+    case 'assignment_assistant':
+      modeInstruction = `MODE: ASSIGNMENT ASSISTANT (Deconstruct & Coach)
+- Deconstruct the assignment prompt and clarify what the professor is asking for.
+- Break the assignment into actionable deliverables and milestones.
+- Identify relevant course concepts, methodologies, and lecture slides to cite.
+- Provide outline guidance, calculation explanations, or review student drafts.
+- (Do NOT invent fake survey responses or fabricated research findings).`;
+      break;
+    case 'doubt_solver':
+      modeInstruction = `MODE: DOUBT SOLVER (Precision Help)
+- Provide direct, concise, and mathematically rigorous answers to the student's question.
+- Reference specific slide definitions, equations, and diagrams from the uploaded material.
+- For calculations, show every step of the math explicitly.`;
+      break;
+    case 'visual_teacher':
+      modeInstruction = `MODE: VISUAL TEACHER (Flowcharts & Maps)
+- Provide structured visual explanations using ASCII diagrams, Markdown tables, or Mermaid code blocks.
+- Generate concept maps, flowcharts, and comparative matrices.`;
+      break;
+    default:
+      modeInstruction = `MODE: GENERAL MBA TUTOR
+- Explain concepts clearly with MBA analogies, step-by-step breakdowns, and slide citations.`;
+  }
 
-    if (actionPrompt === 'Explain Simply') {
-      reply += `### Simple Intuition\nThink of this concept like running a local coffee shop:\n- When your price per cup is \$4 and costs \$1 to make, your gross margin is 75%.\n- Everything in strategic management comes down to either increasing the perceived value (so customers pay happily) or streamlining operations (so each unit costs less).\n\n`;
-    } else if (actionPrompt === 'Give a Real-Life Business Example') {
-      reply += `### Real-World Business Case: Netflix vs Blockbuster\n- **The Strategic Shift:** Blockbuster relied on physical stores and late fees (punitive monetization). Netflix disrupted them with subscription streaming (frictionless value).\n- **The Lesson:** The company that removes friction and aligns monetization with customer value wins the market.\n\n`;
-    } else if (actionPrompt === 'Step by Step') {
-      reply += `### Step-by-Step Breakdown\n1. **Identify the Core Objective:** What metric or goal are we optimizing?\n2. **Gather Market & Internal Data:** Understand unit economics and constraints.\n3. **Formulate Hypotheses:** Test strategic options against scenarios.\n4. **Execute & Iterate:** Measure real results and adjust tactics.\n\n`;
+  if (!genAI) {
+    // Local Tutor Response with intelligent mode formatting
+    let reply = `Hello! As your dedicated MBA Academic Mentor for **${subjectName}**, here is the structured analysis:\n\n`;
+
+    if (mode === 'case_study') {
+      reply += `### 📊 Case Study Analysis: ${effectiveQuery}\n\n`;
+      reply += `#### 1. Executive Summary & Business Problem\nThe core challenge revolves around strategic resource allocation, customer willingness-to-pay, and competitive positioning in an evolving market environment.\n\n`;
+      reply += `#### 2. Key Stakeholders & Objectives\n- **Executive Leadership:** Maximizing long-term enterprise value and EBITDA margins.\n- **Customers:** Seeking optimal price-to-value ratio and frictionless user experience.\n- **Competitors:** Responding dynamically with aggressive pricing or feature parity.\n\n`;
+      reply += `#### 3. Strategic Framework Applied\n- **Elasticity of Demand:** Evaluating whether price changes enhance or compress total revenue (TR = P × Q).\n- **Unit Economics:** Contribution margin per unit minus customer acquisition cost (CAC).\n\n`;
+      reply += `#### 4. Recommended Strategic Action Plan\n1. **Phased Rollout:** Conduct controlled A/B testing on a 10% customer sample before full launch.\n2. **Value-Added Tiering:** Protect base margins while offering high-tier add-ons.\n\n`;
+    } else if (mode === 'exam_prep') {
+      reply += `### 🏆 Practice Examination Preparation (Practice Predictions)\n> *Note: These are high-yield study predictions based on course materials, not guaranteed exam questions.*\n\n`;
+      reply += `#### A. 2-Mark Short Question\n**Q:** Define and state the decision rule for marginal cost (MC) and marginal revenue (MR).\n**Model Answer:** Profit is maximized at the output level where $MR = MC$, provided the firm's price covers average variable cost in the short run.\n\n`;
+      reply += `#### B. 5-Mark Analytical Question\n**Q:** Explain the difference between a movement along a demand curve versus a shift in the demand curve with MBA business examples.\n**Model Answer:** Movement occurs strictly when the product's own price changes. A shift occurs when non-price determinants change (e.g. consumer income, advertising, competitor pricing).\n\n`;
+      reply += `#### C. 10-Mark Strategic Essay Question\n**Q:** Evaluate how price elasticity of demand impacts total revenue across elastic ($|PED| > 1$) and inelastic ($|PED| < 1$) market segments. Support your answer with a pricing strategy for a premium brand.\n\n`;
+    } else if (mode === 'assignment_assistant') {
+      reply += `### 📋 Assignment Coaching Breakdown\n\n`;
+      reply += `#### 1. What the Professor is Expecting\n- Demonstrating practical application of subject concepts rather than reciting textbook definitions.\n- Grounding your hypotheses in quantitative data and referenced course frameworks.\n\n`;
+      reply += `#### 2. Recommended Structure for Your Submission\n1. **Introduction & Problem Scope (15%):** Clearly state the operational or market problem.\n2. **Theoretical Framework & Methodology (25%):** Cite the specific models covered in lectures.\n3. **Empirical Analysis / Findings (40%):** Present tables, graphs, and elasticity or survey calculations.\n4. **Managerial Recommendations (20%):** Provide actionable, prioritized next steps.\n\n`;
+    } else if (actionPrompt === 'Explain Simply' || mode === 'teach_me') {
+      reply += `### 💡 Simple Intuition\nThink of this concept like running a high-growth business:\n- When customer perceived value exceeds the price, transaction surplus is created.\n- In strategic management, every successful initiative either **widens the value wedge** (increasing what customers are happy to pay) or **lowers the cost frontier**.\n\n`;
+      reply += `### 🔢 Step-by-Step Breakdown\n1. **Identify the Core Variable:** Pinpoint what metric or constraint is driving the decision.\n2. **Analyze the Trade-Off:** Recognize what opportunity cost is incurred.\n3. **Apply the Decision Rule:** Evaluate whether marginal benefit exceeds marginal cost.\n\n`;
     } else {
-      reply += `Regarding your question: *"${lastUserMessage}"*\n\nBased on your course materials in **${subjectName}**, this topic is critical for understanding organizational decision-making and performance optimization.\n\n`;
+      reply += `Regarding your question: *"${effectiveQuery}"*\n\nBased on your course materials in **${subjectName}**, this topic is critical for understanding strategic decision-making and performance optimization.\n\n`;
     }
 
     if (citations.length > 0) {
-      reply += `\n> **Course Material References:**\n`;
+      reply += `\n> **Course Material References (Strictly ${subjectName}):**\n`;
       citations.forEach(c => {
         reply += `> - **${c.docTitle}** (${c.pageTitle}): *"${c.snippet}"*\n`;
       });
-      reply += `\n*The above insights are aligned directly with your uploaded lecture slides.*`;
+      reply += `\n*The above insights are aligned directly with your uploaded course materials.*`;
     }
 
-    reply += `\n\nWould you like me to test your understanding with a quick MBA question, or walk through another business example?`;
+    reply += `\n\nWould you like me to generate a practice quiz on this topic, save this explanation to your Subject Notes, or break down another scenario?`;
 
     return {
       content: reply,
@@ -472,21 +552,24 @@ async function chatWithTutor({ subjectName, messages = [], docChunks = [], actio
     parts: [{ text: m.content }]
   }));
 
-  const systemPrompt = `You are a patient, distinguished MBA Professor and personal academic tutor for the subject "${subjectName}".
-Your teaching approach:
-1. Explain difficult topics in simple, intuitive language without academic jargon.
-2. Break complex concepts into numbered steps.
-3. Use everyday analogies and real-world business examples (Apple, Amazon, Tesla, Netflix, Uber).
-4. For calculations, write out formulas and show numbers step by step.
-5. If course material excerpts are provided below, PRIORITIZE them and explicitly cite the document and slide/page.
-6. Clearly distinguish between knowledge directly stated in their uploaded slides versus general MBA industry insights.
-7. Ask small checkpoint questions at the end to verify the student's understanding.
+  const systemPrompt = `You are a distinguished MBA Professor and personal academic tutor for the subject "${subjectName}".
+Your academic goal is to ensure the student masters their coursework, excels in examinations, and understands real-world strategic applications.
+
+${modeInstruction}
+
+CRITICAL RULES:
+1. Ground your answers FIRST in the course material excerpts provided below.
+2. If citing course materials, explicitly reference the Document Name and Slide/Page number.
+3. Clearly distinguish between concepts directly stated in the student's uploaded materials versus general MBA industry insights.
+4. Maintain strict subject isolation: do not mix in unrelated subjects unless explicitly requested.
+5. If math or formulas are involved, show the exact equations with step-by-step arithmetic.
+6. Provide high-quality Markdown with headings, bullet points, and tables.
 
 COURSE MATERIAL CONTEXT (RAG):
 ${contextText}
 
-STUDENT'S INSTRUCTION / QUICK ACTION:
-${actionPrompt ? `Action Requested: ${actionPrompt}` : 'Direct Tutoring'}`;
+STUDENT ACTION / PROMPT:
+${actionPrompt ? `Action: ${actionPrompt}` : `Mode: ${mode}`}`;
 
   try {
     const model = genAI.getGenerativeModel({

@@ -32,6 +32,8 @@ export const StudyMaterialsSection: React.FC<StudyMaterialsSectionProps> = ({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewDoc, setPreviewDoc] = useState<StudyDocument | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [uploadCategory, setUploadCategory] = useState<string>('lecture_slides');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = async (files: FileList | File[]) => {
@@ -40,7 +42,7 @@ export const StudyMaterialsSection: React.FC<StudyMaterialsSectionProps> = ({
       setUploading(true);
       setUploadError(null);
       const fileArray = Array.from(files);
-      await api.uploadDocuments(subject.id, fileArray, 'General');
+      await api.uploadDocuments(subject.id, fileArray, 'General', uploadCategory, subject.termId);
       onRefresh();
     } catch (err: any) {
       setUploadError(err.message || 'File upload and processing failed.');
@@ -61,8 +63,10 @@ export const StudyMaterialsSection: React.FC<StudyMaterialsSectionProps> = ({
   };
 
   const filteredDocs = documents.filter(d => {
-    return d.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = d.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       d.originalName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'all' || (d.category || 'lecture_slides') === categoryFilter;
+    return matchesSearch && matchesCategory;
   });
 
   const getFormatBadge = (type: string) => {
@@ -77,6 +81,21 @@ export const StudyMaterialsSection: React.FC<StudyMaterialsSectionProps> = ({
         return <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-400 uppercase border border-sky-200 dark:border-sky-800">DOCX</span>;
       default:
         return <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase border border-slate-200 dark:border-slate-700">{type}</span>;
+    }
+  };
+
+  const getCategoryBadge = (cat?: string) => {
+    switch (cat) {
+      case 'case_study':
+        return <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">Case Study</span>;
+      case 'assignment':
+        return <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">Assignment</span>;
+      case 'project':
+        return <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Project</span>;
+      case 'reference':
+        return <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">Reference</span>;
+      default:
+        return <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">Lecture Slides</span>;
     }
   };
 
@@ -118,7 +137,22 @@ export const StudyMaterialsSection: React.FC<StudyMaterialsSectionProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center justify-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs">
+              <span className="font-semibold text-slate-500">Category:</span>
+              <select
+                value={uploadCategory}
+                onChange={(e) => setUploadCategory(e.target.value)}
+                className="bg-transparent font-bold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
+              >
+                <option value="lecture_slides" className="dark:bg-slate-900">Lecture Slides (PPTX/PDF)</option>
+                <option value="case_study" className="dark:bg-slate-900">Case Study (HBS/Stanford)</option>
+                <option value="assignment" className="dark:bg-slate-900">Assignment / Problem Set</option>
+                <option value="project" className="dark:bg-slate-900">Project / Term Paper</option>
+                <option value="reference" className="dark:bg-slate-900">Reference Notes</option>
+              </select>
+            </div>
+
             <button
               type="button"
               disabled={uploading}
@@ -150,8 +184,8 @@ export const StudyMaterialsSection: React.FC<StudyMaterialsSectionProps> = ({
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="font-bold text-slate-900 dark:text-white text-base">Course Lecture Documents ({documents.length})</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Parsed slide-by-slide and indexed for RAG note synthesis and AI tutor citations.</p>
+            <h3 className="font-bold text-slate-900 dark:text-white text-base">Subject Document Library ({documents.length})</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Parsed slide-by-slide and isolated strictly for {subject.name} note synthesis and AI tutor citations.</p>
           </div>
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
@@ -163,6 +197,30 @@ export const StudyMaterialsSection: React.FC<StudyMaterialsSectionProps> = ({
               className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100"
             />
           </div>
+        </div>
+
+        {/* Category Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+          {[
+            { id: 'all', label: 'All Documents' },
+            { id: 'lecture_slides', label: 'Lecture Slides' },
+            { id: 'case_study', label: 'Case Studies' },
+            { id: 'assignment', label: 'Assignments' },
+            { id: 'project', label: 'Projects' },
+            { id: 'reference', label: 'References' }
+          ].map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setCategoryFilter(cat.id)}
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition ${
+                categoryFilter === cat.id
+                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
 
         {documents.length === 0 ? (
@@ -186,6 +244,7 @@ export const StudyMaterialsSection: React.FC<StudyMaterialsSectionProps> = ({
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{doc.title}</p>
                       {getFormatBadge(doc.fileType)}
+                      {getCategoryBadge(doc.category)}
                     </div>
                     <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       <span>{(doc.fileSize / 1024).toFixed(0)} KB</span>

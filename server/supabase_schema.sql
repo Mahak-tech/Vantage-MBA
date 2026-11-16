@@ -149,6 +149,55 @@ CREATE TABLE IF NOT EXISTS academic_tasks (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 10. Academic Terms Table (Six Terms)
+CREATE TABLE IF NOT EXISTS academic_terms (
+  id TEXT PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  term_number INT NOT NULL CHECK (term_number BETWEEN 1 AND 6),
+  name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'upcoming' CHECK (status IN ('active', 'completed', 'upcoming', 'archived')),
+  credits INT DEFAULT 18,
+  gpa NUMERIC(3,2),
+  start_date DATE,
+  end_date DATE,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 11. Assignments Table
+CREATE TABLE IF NOT EXISTS assignments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  term_id TEXT REFERENCES academic_terms(id) ON DELETE SET NULL,
+  subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  due_date TIMESTAMPTZ NOT NULL,
+  priority TEXT DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
+  status TEXT DEFAULT 'not_started' CHECK (status IN ('not_started', 'in_progress', 'completed', 'submitted', 'overdue')),
+  estimated_hours NUMERIC DEFAULT 4,
+  progress INT DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),
+  notes TEXT,
+  attachments JSONB DEFAULT '[]'::jsonb,
+  submitted_files JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 12. AI Conversations Table
+CREATE TABLE IF NOT EXISTS conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  term_id TEXT REFERENCES academic_terms(id) ON DELETE SET NULL,
+  subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  mode TEXT NOT NULL DEFAULT 'teach_me',
+  messages JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Enable Row Level Security (RLS) on all tables
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;
@@ -159,6 +208,9 @@ ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quiz_attempts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE visual_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE academic_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE academic_terms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 
 -- Create Policies ensuring users only access their own data
 CREATE POLICY "Users can view own profile" ON profiles FOR ALL USING (auth.uid() = id);
@@ -170,3 +222,6 @@ CREATE POLICY "Users can view own questions" ON questions FOR ALL USING (auth.ui
 CREATE POLICY "Users can view own quiz attempts" ON quiz_attempts FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can view own visual items" ON visual_items FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can view own academic tasks" ON academic_tasks FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can view own academic terms" ON academic_terms FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can view own assignments" ON assignments FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can view own conversations" ON conversations FOR ALL USING (auth.uid() = user_id);

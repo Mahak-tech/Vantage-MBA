@@ -13,7 +13,12 @@ import {
   NoteType,
   QuestionType,
   DifficultyLevel,
-  VisualMode
+  VisualMode,
+  AcademicTerm,
+  Assignment,
+  AIConversation,
+  TeachingMode,
+  TodayStudyPlan
 } from '../types';
 
 const API_BASE = '/api';
@@ -47,6 +52,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
+  // Academic Terms (Six Terms)
+  getAcademicTerms: () => request<AcademicTerm[]>('/terms'),
+  getActiveTerm: () => request<AcademicTerm>('/terms/active'),
+  updateAcademicTerm: (id: string, updates: Partial<AcademicTerm>) =>
+    request<AcademicTerm>(`/terms/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
+
   // Settings & Profile
   getSettings: () => request<Settings>('/settings'),
   updateSettings: (settings: Partial<Settings>) =>
@@ -65,8 +76,9 @@ export const api = {
       body: JSON.stringify(data)
     }),
 
-  // Subjects
-  getSubjects: () => request<Subject[]>('/subjects'),
+  // Subjects (Term-Aware)
+  getSubjects: (termId?: string) =>
+    request<Subject[]>(`/subjects${termId ? `?termId=${termId}` : ''}`),
   getSubject: (id: string) => request<Subject>(`/subjects/${id}`),
   createSubject: (subject: Partial<Subject>) =>
     request<Subject>('/subjects', { method: 'POST', body: JSON.stringify(subject) }),
@@ -76,12 +88,20 @@ export const api = {
     request<{ success: boolean }>(`/subjects/${id}`, { method: 'DELETE' }),
 
   // Documents
-  getDocuments: (subjectId?: string) =>
-    request<StudyDocument[]>(`/documents${subjectId ? `?subjectId=${subjectId}` : ''}`),
-  uploadDocuments: async (subjectId: string, files: File[], moduleName?: string) => {
+  getDocuments: (subjectId?: string, termId?: string, category?: string) => {
+    const params = new URLSearchParams();
+    if (subjectId) params.append('subjectId', subjectId);
+    if (termId) params.append('termId', termId);
+    if (category) params.append('category', category);
+    const qs = params.toString();
+    return request<StudyDocument[]>(`/documents${qs ? `?${qs}` : ''}`);
+  },
+  uploadDocuments: async (subjectId: string, files: File[], moduleName?: string, category?: string, termId?: string) => {
     const formData = new FormData();
     formData.append('subjectId', subjectId);
     if (moduleName) formData.append('moduleName', moduleName);
+    if (category) formData.append('category', category);
+    if (termId) formData.append('termId', termId);
     files.forEach(f => formData.append('files', f));
 
     const response = await fetch(`${API_BASE}/documents/upload`, {
@@ -97,6 +117,54 @@ export const api = {
   },
   deleteDocument: (id: string) =>
     request<{ success: boolean }>(`/documents/${id}`, { method: 'DELETE' }),
+
+  // Assignments & Deadlines
+  getAssignments: (params?: { termId?: string; subjectId?: string; status?: string; priority?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.termId) query.append('termId', params.termId);
+    if (params?.subjectId) query.append('subjectId', params.subjectId);
+    if (params?.status) query.append('status', params.status);
+    if (params?.priority) query.append('priority', params.priority);
+    const qs = query.toString();
+    return request<Assignment[]>(`/assignments${qs ? `?${qs}` : ''}`);
+  },
+  getAssignment: (id: string) => request<Assignment>(`/assignments/${id}`),
+  createAssignment: (asg: Partial<Assignment>) =>
+    request<Assignment>('/assignments', { method: 'POST', body: JSON.stringify(asg) }),
+  updateAssignment: (id: string, updates: Partial<Assignment>) =>
+    request<Assignment>(`/assignments/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
+  deleteAssignment: (id: string) =>
+    request<{ success: boolean }>(`/assignments/${id}`, { method: 'DELETE' }),
+
+  // Multi-Conversation AI Tutor Workspace
+  getConversations: (params?: { subjectId?: string; termId?: string; mode?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.subjectId) query.append('subjectId', params.subjectId);
+    if (params?.termId) query.append('termId', params.termId);
+    if (params?.mode) query.append('mode', params.mode);
+    const qs = query.toString();
+    return request<AIConversation[]>(`/conversations${qs ? `?${qs}` : ''}`);
+  },
+  getConversation: (id: string) => request<AIConversation>(`/conversations/${id}`),
+  createConversation: (data: { subjectId: string; termId?: string; title?: string; mode?: TeachingMode }) =>
+    request<AIConversation>('/conversations', { method: 'POST', body: JSON.stringify(data) }),
+  updateConversation: (id: string, updates: Partial<AIConversation>) =>
+    request<AIConversation>(`/conversations/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
+  deleteConversation: (id: string) =>
+    request<{ success: boolean }>(`/conversations/${id}`, { method: 'DELETE' }),
+  sendConversationMessage: (id: string, data: { content: string; mode?: TeachingMode; actionPrompt?: string }) =>
+    request<any>(`/conversations/${id}/messages`, { method: 'POST', body: JSON.stringify(data) }),
+
+  convertChatToNote: (data: { subjectId: string; title: string; content: string; type?: string; topic?: string }) =>
+    request<Note>('/conversations/convert/note', { method: 'POST', body: JSON.stringify(data) }),
+  convertChatToFlashcards: (data: { subjectId: string; cards: Array<{ front: string; back: string }>; topic?: string }) =>
+    request<Flashcard[]>('/conversations/convert/flashcards', { method: 'POST', body: JSON.stringify(data) }),
+  convertChatToMcqs: (data: { subjectId: string; questions: any[]; topic?: string }) =>
+    request<Question[]>('/conversations/convert/mcqs', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Personalized Study Planner ("What Should I Study Today?")
+  getTodayStudyPlan: (termId?: string) =>
+    request<TodayStudyPlan>(`/planner/today${termId ? `?termId=${termId}` : ''}`),
 
   // Notes
   getNotes: (subjectId?: string) =>

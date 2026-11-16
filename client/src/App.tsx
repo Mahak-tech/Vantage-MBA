@@ -11,8 +11,11 @@ import { RevisionCentreView } from './views/RevisionCentreView';
 import { AcademicCalendarView } from './views/AcademicCalendarView';
 import { SettingsView } from './views/SettingsView';
 import { VisualStudioSection } from './views/subject/VisualStudioSection';
+import { MbaJourneyView } from './views/MbaJourneyView';
+import { AssignmentManagerView } from './views/AssignmentManagerView';
+import { AiTutorWorkspaceView } from './views/AiTutorWorkspaceView';
 
-import { Subject, StudyDocument, Note, Flashcard, QuizAttempt, AcademicTask, UserProfile } from './types';
+import { Subject, StudyDocument, Note, Flashcard, QuizAttempt, AcademicTask, UserProfile, AcademicTerm, Assignment } from './types';
 import { api } from './services/api';
 import { BookOpen } from 'lucide-react';
 
@@ -21,6 +24,10 @@ export function App() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [terms, setTerms] = useState<AcademicTerm[]>([]);
+  const [activeTermId, setActiveTermId] = useState<string>('term-2');
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [aiInitialPrompt, setAiInitialPrompt] = useState<string>('');
 
   // Authentication State (default to true if previously logged in, or false to present login)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -63,14 +70,16 @@ export function App() {
   const loadAllData = async () => {
     try {
       setLoading(true);
-      const [u, subList, docList, nList, fList, qList, tList] = await Promise.all([
+      const [u, subList, docList, nList, fList, qList, tList, termList, asgList] = await Promise.all([
         api.getUser().catch(() => null),
         api.getSubjects().catch(() => []),
         api.getDocuments().catch(() => []),
         api.getNotes().catch(() => []),
         api.getFlashcards().catch(() => []),
         api.getQuizAttempts().catch(() => []),
-        api.getCalendarTasks().catch(() => [])
+        api.getCalendarTasks().catch(() => []),
+        api.getAcademicTerms().catch(() => []),
+        api.getAssignments().catch(() => [])
       ]);
 
       if (u) setUser(u);
@@ -80,6 +89,13 @@ export function App() {
       setFlashcards(fList || []);
       setQuizzes(qList || []);
       setTasks(tList || []);
+      setTerms(termList || []);
+      setAssignments(asgList || []);
+
+      if (termList && termList.length > 0) {
+        const active = termList.find(t => t.status === 'active');
+        if (active) setActiveTermId(active.id);
+      }
 
       if (subList && subList.length > 0 && !selectedSubjectId) {
         setSelectedSubjectId(subList[0].id);
@@ -201,6 +217,7 @@ export function App() {
         }}
         user={user}
         onLogout={handleLogout}
+        assignmentsCount={assignments.filter(a => a.status !== 'completed' && a.status !== 'submitted').length}
       />
 
       {/* Main Content Area */}
@@ -217,6 +234,8 @@ export function App() {
           darkMode={darkMode}
           onToggleDarkMode={() => setDarkMode(prev => !prev)}
           user={user}
+          activeTermName={terms.find(t => t.id === activeTermId)?.name || 'Term 2'}
+          onNavigateToJourney={() => setCurrentTab('journey')}
           onLogStudyMinutes={handleLogStudyMinutes}
           onLogout={handleLogout}
         />
@@ -233,12 +252,55 @@ export function App() {
               flashcards={flashcards}
               quizzes={quizzes}
               tasks={tasks}
+              terms={terms}
+              activeTermId={activeTermId}
               onNavigate={handleNavigate}
               openCreateSubjectModal={() => {
                 setSubjectToEdit(null);
                 setSubjectModalOpen(true);
               }}
               onLogStudyMinutes={handleLogStudyMinutes}
+            />
+          )}
+
+          {/* 2. MY MBA JOURNEY (Six Terms) */}
+          {currentTab === 'journey' && (
+            <MbaJourneyView
+              terms={terms}
+              subjects={subjects}
+              activeTermId={activeTermId}
+              onSelectTerm={(termId) => setActiveTermId(termId)}
+              onRefreshTerms={loadAllData}
+              onNavigate={handleNavigate}
+              openCreateSubjectModal={(_termId) => {
+                setSubjectToEdit(null);
+                setSubjectModalOpen(true);
+              }}
+            />
+          )}
+
+          {/* 3. ASSIGNMENT & DEADLINE MANAGER */}
+          {currentTab === 'assignments' && (
+            <AssignmentManagerView
+              subjects={subjects}
+              terms={terms}
+              activeTermId={activeTermId}
+              onNavigateToAiTutor={(subId, prompt) => {
+                setSelectedSubjectId(subId);
+                setAiInitialPrompt(prompt || '');
+                setCurrentTab('tutor');
+              }}
+            />
+          )}
+
+          {/* 4. ADVANCED SUBJECT-SPECIFIC AI TUTOR WORKSPACE */}
+          {currentTab === 'tutor' && (
+            <AiTutorWorkspaceView
+              subjects={subjects}
+              terms={terms}
+              activeTermId={activeTermId}
+              initialSubjectId={selectedSubjectId || undefined}
+              initialPrompt={aiInitialPrompt || undefined}
             />
           )}
 
@@ -278,8 +340,8 @@ export function App() {
             )
           )}
 
-          {/* 3 - 7: Direct Feature Tabs (Materials, Notes, Flashcards, Practice, Tutor) */}
-          {['materials', 'notes', 'flashcards', 'practice', 'tutor'].includes(currentTab) && (
+          {/* 3 - 6: Direct Feature Tabs (Materials, Notes, Flashcards, Practice) */}
+          {['materials', 'notes', 'flashcards', 'practice'].includes(currentTab) && (
             activeSubject ? (
               <SubjectWorkspaceView
                 subject={activeSubject}

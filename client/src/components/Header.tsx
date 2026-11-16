@@ -11,6 +11,8 @@ interface HeaderProps {
   darkMode: boolean;
   onToggleDarkMode: () => void;
   user: UserProfile | null;
+  activeTermName?: string;
+  onNavigateToJourney?: () => void;
   onLogStudyMinutes?: () => void;
   onLogout?: () => void;
 }
@@ -24,6 +26,8 @@ export const Header: React.FC<HeaderProps> = ({
   darkMode,
   onToggleDarkMode,
   user,
+  activeTermName = 'Term 2',
+  onNavigateToJourney,
   onLogStudyMinutes,
   onLogout
 }) => {
@@ -51,6 +55,16 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
+        {/* Active Term Pill */}
+        <button
+          onClick={onNavigateToJourney}
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-100 transition shadow-2xs"
+          title="Click to view all Six Terms"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>{activeTermName} Active</span>
+        </button>
+
         {/* Subject Switcher */}
         {subjects.length > 0 && (
           <div className="hidden lg:flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs">

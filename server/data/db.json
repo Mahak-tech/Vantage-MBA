@@ -30,7 +30,9 @@
       "semester": "Semester 2",
       "creditHours": 3,
       "createdAt": "2026-11-15T08:07:27.420Z",
-      "updatedAt": "2026-11-15T08:14:40.722Z"
+      "updatedAt": "2026-11-15T08:14:40.722Z",
+      "termId": "term-2",
+      "termNumber": 2
     },
     {
       "id": "subj_1794730542677_g79h6r",
@@ -42,7 +44,9 @@
       "semester": "Semester 2",
       "creditHours": 3,
       "createdAt": "2026-11-15T08:15:42.677Z",
-      "updatedAt": "2026-11-15T08:15:42.677Z"
+      "updatedAt": "2026-11-15T08:15:42.677Z",
+      "termId": "term-2",
+      "termNumber": 2
     }
   ],
   "documents": [
@@ -202,7 +206,9 @@
         }
       ],
       "summary": "",
-      "module": "General"
+      "module": "General",
+      "termId": "term-2",
+      "category": "lecture_slides"
     },
     {
       "id": "doc_1794730562438_z0er9q",
@@ -250,7 +256,9 @@
         }
       ],
       "summary": "",
-      "module": "General"
+      "module": "General",
+      "termId": "term-2",
+      "category": "lecture_slides"
     },
     {
       "id": "doc_1794736961180_17fm5p",
@@ -273,7 +281,9 @@
         }
       ],
       "summary": "",
-      "module": "Module 1"
+      "module": "Module 1",
+      "termId": "term-2",
+      "category": "lecture_slides"
     }
   ],
   "notes": [
@@ -293,7 +303,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T08:07:27.516Z",
-      "updatedAt": "2026-11-15T08:07:27.516Z"
+      "updatedAt": "2026-11-15T08:07:27.516Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794730047532_khs0yh",
@@ -311,7 +322,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T08:07:27.532Z",
-      "updatedAt": "2026-11-15T08:07:27.533Z"
+      "updatedAt": "2026-11-15T08:07:27.533Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794730583313_li6jys",
@@ -329,7 +341,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T08:16:23.313Z",
-      "updatedAt": "2026-11-15T08:16:23.313Z"
+      "updatedAt": "2026-11-15T08:16:23.313Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794730623734_opmc58",
@@ -347,7 +360,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T08:17:03.734Z",
-      "updatedAt": "2026-11-15T08:17:03.734Z"
+      "updatedAt": "2026-11-15T08:17:03.734Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794730769419_hcq4y9",
@@ -365,7 +379,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T08:19:29.419Z",
-      "updatedAt": "2026-11-15T08:19:29.419Z"
+      "updatedAt": "2026-11-15T08:19:29.419Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794736896130_rtivwf",
@@ -383,7 +398,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T10:01:36.130Z",
-      "updatedAt": "2026-11-15T10:01:36.130Z"
+      "updatedAt": "2026-11-15T10:01:36.130Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794737480411_4hx2y3",
@@ -401,7 +417,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T10:11:20.411Z",
-      "updatedAt": "2026-11-15T10:11:20.412Z"
+      "updatedAt": "2026-11-15T10:11:20.412Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794737585185_ag0gxj",
@@ -419,7 +436,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T10:13:05.185Z",
-      "updatedAt": "2026-11-15T10:13:05.185Z"
+      "updatedAt": "2026-11-15T10:13:05.185Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794737604968_21wrar",
@@ -437,7 +455,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T10:13:24.968Z",
-      "updatedAt": "2026-11-15T10:13:24.968Z"
+      "updatedAt": "2026-11-15T10:13:24.968Z",
+      "termId": "term-2"
     },
     {
       "id": "note_1794739350961_qq800k",
@@ -455,7 +474,8 @@
       ],
       "isFavorite": false,
       "createdAt": "2026-11-15T10:42:30.961Z",
-      "updatedAt": "2026-11-15T10:42:30.961Z"
+      "updatedAt": "2026-11-15T10:42:30.961Z",
+      "termId": "term-2"
     }
   ],
   "flashcardDecks": [],
@@ -1477,6 +1497,225 @@
       "goal": "Review Macroeconomics Liquidity Trap",
       "ambientSound": "none",
       "completedAt": "2026-11-15T09:17:53.822Z"
+    }
+  ],
+  "academicTerms": [
+    {
+      "id": "term-1",
+      "termNumber": 1,
+      "name": "Term 1",
+      "status": "completed",
+      "credits": 18,
+      "gpa": "3.85",
+      "startDate": "2026-07-01",
+      "endDate": "2026-10-15",
+      "description": "Foundation MBA Core: Financial Accounting, Quantitative Methods, Marketing Management & Organizational Behavior",
+      "isCurrent": false
+    },
+    {
+      "id": "term-2",
+      "termNumber": 2,
+      "name": "Term 2",
+      "status": "active",
+      "credits": 18,
+      "gpa": null,
+      "startDate": "2026-10-20",
+      "endDate": "2027-01-30",
+      "description": "Active Term: Microeconomics, Market Research Methods, Corporate Finance & Business Analytics",
+      "isCurrent": true
+    },
+    {
+      "id": "term-3",
+      "termNumber": 3,
+      "name": "Term 3",
+      "status": "upcoming",
+      "credits": 18,
+      "gpa": null,
+      "startDate": "2027-02-05",
+      "endDate": "2027-05-15",
+      "description": "Advanced Operations, Supply Chain Strategy & Managerial Macroeconomics",
+      "isCurrent": false
+    },
+    {
+      "id": "term-4",
+      "termNumber": 4,
+      "name": "Term 4",
+      "status": "upcoming",
+      "credits": 18,
+      "gpa": null,
+      "startDate": "2027-06-01",
+      "endDate": "2027-09-15",
+      "description": "Product Leadership, Global Competitive Strategy & Technology Commercialization",
+      "isCurrent": false
+    },
+    {
+      "id": "term-5",
+      "termNumber": 5,
+      "name": "Term 5",
+      "status": "upcoming",
+      "credits": 18,
+      "gpa": null,
+      "startDate": "2027-10-01",
+      "endDate": "2028-01-15",
+      "description": "Venture Capital, Tech Entrepreneurship & Specialized Electives",
+      "isCurrent": false
+    },
+    {
+      "id": "term-6",
+      "termNumber": 6,
+      "name": "Term 6",
+      "status": "upcoming",
+      "credits": 18,
+      "gpa": null,
+      "startDate": "2028-02-01",
+      "endDate": "2028-05-30",
+      "description": "Capstone Consulting Immersion, Strategic Mergers & Executive Leadership",
+      "isCurrent": false
+    }
+  ],
+  "assignments": [
+    {
+      "id": "asg_1",
+      "termId": "term-2",
+      "subjectId": "subj_1794730047420_gvfs0q",
+      "title": "Price Elasticity & Revenue Optimization Case Analysis",
+      "description": "Analyze real customer price sensitivity data from Sessions 3-5 and propose optimal pricing tier for subscription SaaS.",
+      "dueDate": "2026-11-19T10:21:14.490Z",
+      "priority": "high",
+      "status": "in_progress",
+      "estimatedHours": 6,
+      "progress": 45,
+      "notes": "Include cross-price elasticity and arc elasticity formulas. Cite Session 3 slides.",
+      "attachments": [],
+      "submittedFiles": []
+    },
+    {
+      "id": "asg_2",
+      "termId": "term-2",
+      "subjectId": "subj_1794730542677_g79h6r",
+      "title": "Instagram Skincare Influencer Survey Design & Sampling",
+      "description": "Construct a 15-question structured Likert scale survey evaluating influencer authenticity and purchase intention.",
+      "dueDate": "2026-11-22T10:21:14.491Z",
+      "priority": "medium",
+      "status": "not_started",
+      "estimatedHours": 8,
+      "progress": 0,
+      "notes": "Reference the uploaded assignment doc in MRM workspace.",
+      "attachments": [],
+      "submittedFiles": []
+    }
+  ],
+  "conversations": [
+    {
+      "id": "conv_1794824474769_p6y9i1",
+      "subjectId": "subj_1794730047420_gvfs0q",
+      "termId": "term-2",
+      "title": "Session 3 Arc Elasticity",
+      "mode": "teach_me",
+      "messages": [
+        {
+          "id": "msg_1794824474794_4a88l4",
+          "role": "user",
+          "content": "Explain opportunity cost with a business example",
+          "citations": [],
+          "timestamp": "2026-11-16T10:21:14.794Z"
+        },
+        {
+          "id": "msg_1794824474822_4go775",
+          "role": "assistant",
+          "content": "Hello! As your dedicated MBA Academic Mentor for **MicroEconomics**, here is the structured analysis:\n\n### 💡 Simple Intuition\nThink of this concept like running a high-growth business:\n- When customer perceived value exceeds the price, transaction surplus is created.\n- In strategic management, every successful initiative either **widens the value wedge** (increasing what customers are happy to pay) or **lowers the cost frontier**.\n\n### 🔢 Step-by-Step Breakdown\n1. **Identify the Core Variable:** Pinpoint what metric or constraint is driving the decision.\n2. **Analyze the Trade-Off:** Recognize what opportunity cost is incurred.\n3. **Apply the Decision Rule:** Evaluate whether marginal benefit exceeds marginal cost.\n\n\n> **Course Material References (Strictly MicroEconomics):**\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 21): *\"From a total cost function, fixed cost is the part that does not depend on Q. Variable cost is the part that changes with Q. Average cost is TC/Q, and...\"*\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 19): *\"Average Variable Cost (AVC) = VC / Q\nAverage Total Cost (ATC) = TC / Q = AFC + AVC\nAverage cost means cost per unit. As output rises, AFC usually fall...\"*\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 19): *\"Example from the slides: a firm owns its building and pays no rent. The economic cost of using the building is not zero because it could have rented t...\"*\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 23): *\"In the standard long-run competitive equilibrium described in the lecture, firms maximise profit and earn zero economic profit. Zero economic profit d...\"*\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 19): *\"A firm needs to understand how production choices affect costs. Cost information helps managers choose how much to produce, which inputs to use, wheth...\"*\n\n*The above insights are aligned directly with your uploaded course materials.*\n\nWould you like me to generate a practice quiz on this topic, save this explanation to your Subject Notes, or break down another scenario?",
+          "citations": [
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 21,
+              "pageTitle": "Section 21",
+              "snippet": "From a total cost function, fixed cost is the part that does not depend on Q. Variable cost is the part that changes with Q. Average cost is TC/Q, and..."
+            },
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 19,
+              "pageTitle": "Section 19",
+              "snippet": "Average Variable Cost (AVC) = VC / Q\nAverage Total Cost (ATC) = TC / Q = AFC + AVC\nAverage cost means cost per unit. As output rises, AFC usually fall..."
+            },
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 19,
+              "pageTitle": "Section 19",
+              "snippet": "Example from the slides: a firm owns its building and pays no rent. The economic cost of using the building is not zero because it could have rented t..."
+            },
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 23,
+              "pageTitle": "Section 23",
+              "snippet": "In the standard long-run competitive equilibrium described in the lecture, firms maximise profit and earn zero economic profit. Zero economic profit d..."
+            },
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 19,
+              "pageTitle": "Section 19",
+              "snippet": "A firm needs to understand how production choices affect costs. Cost information helps managers choose how much to produce, which inputs to use, wheth..."
+            }
+          ],
+          "timestamp": "2026-11-16T10:21:14.822Z"
+        },
+        {
+          "id": "msg_1794824493440_tcuf6m",
+          "role": "user",
+          "content": "Explain opportunity cost with a business example",
+          "citations": [],
+          "timestamp": "2026-11-16T10:21:33.440Z"
+        },
+        {
+          "id": "msg_1794824493468_44lq6k",
+          "role": "assistant",
+          "content": "Hello! As your dedicated MBA Academic Mentor for **MicroEconomics**, here is the structured analysis:\n\n### 💡 Simple Intuition\nThink of this concept like running a high-growth business:\n- When customer perceived value exceeds the price, transaction surplus is created.\n- In strategic management, every successful initiative either **widens the value wedge** (increasing what customers are happy to pay) or **lowers the cost frontier**.\n\n### 🔢 Step-by-Step Breakdown\n1. **Identify the Core Variable:** Pinpoint what metric or constraint is driving the decision.\n2. **Analyze the Trade-Off:** Recognize what opportunity cost is incurred.\n3. **Apply the Decision Rule:** Evaluate whether marginal benefit exceeds marginal cost.\n\n\n> **Course Material References (Strictly MicroEconomics):**\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 21): *\"From a total cost function, fixed cost is the part that does not depend on Q. Variable cost is the part that changes with Q. Average cost is TC/Q, and...\"*\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 19): *\"Average Variable Cost (AVC) = VC / Q\nAverage Total Cost (ATC) = TC / Q = AFC + AVC\nAverage cost means cost per unit. As output rises, AFC usually fall...\"*\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 19): *\"Example from the slides: a firm owns its building and pays no rent. The economic cost of using the building is not zero because it could have rented t...\"*\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 23): *\"In the standard long-run competitive equilibrium described in the lecture, firms maximise profit and earn zero economic profit. Zero economic profit d...\"*\n> - **Microeconomics_Sessions_1_to_10_Study_Notes** (Section 19): *\"A firm needs to understand how production choices affect costs. Cost information helps managers choose how much to produce, which inputs to use, wheth...\"*\n\n*The above insights are aligned directly with your uploaded course materials.*\n\nWould you like me to generate a practice quiz on this topic, save this explanation to your Subject Notes, or break down another scenario?",
+          "citations": [
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 21,
+              "pageTitle": "Section 21",
+              "snippet": "From a total cost function, fixed cost is the part that does not depend on Q. Variable cost is the part that changes with Q. Average cost is TC/Q, and..."
+            },
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 19,
+              "pageTitle": "Section 19",
+              "snippet": "Average Variable Cost (AVC) = VC / Q\nAverage Total Cost (ATC) = TC / Q = AFC + AVC\nAverage cost means cost per unit. As output rises, AFC usually fall..."
+            },
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 19,
+              "pageTitle": "Section 19",
+              "snippet": "Example from the slides: a firm owns its building and pays no rent. The economic cost of using the building is not zero because it could have rented t..."
+            },
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 23,
+              "pageTitle": "Section 23",
+              "snippet": "In the standard long-run competitive equilibrium described in the lecture, firms maximise profit and earn zero economic profit. Zero economic profit d..."
+            },
+            {
+              "docId": "doc_1794730380047_zviqh2",
+              "docTitle": "Microeconomics_Sessions_1_to_10_Study_Notes",
+              "pageIndex": 19,
+              "pageTitle": "Section 19",
+              "snippet": "A firm needs to understand how production choices affect costs. Cost information helps managers choose how much to produce, which inputs to use, wheth..."
+            }
+          ],
+          "timestamp": "2026-11-16T10:21:33.468Z"
+        }
+      ],
+      "createdAt": "2026-11-16T10:21:14.769Z",
+      "updatedAt": "2026-11-16T10:21:33.468Z"
     }
   ]
 }
